@@ -16,6 +16,8 @@ $ npm install --save-dev electron-prebuilt fable-import-electron
 ```xml
   <ItemGroup>
     <Reference Include="node_modules/fable-core/Fable.Core.dll" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="node_modules/fable-import-electron/Fable.Import.Electron.fs" />
   </ItemGroup>
 ```

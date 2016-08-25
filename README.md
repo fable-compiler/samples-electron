@@ -23,7 +23,7 @@ or
 sudo npm install -g electron
 ```
  
-### 2. Navigate to any of the samples
+### 2. Compile JS from .FSX
 
 Every samples have a `fableconfig.json` file which contains configurations for fable. The only command needed is then `fable`:
 

@@ -9,14 +9,23 @@ Fable bindings and samples for Github Electron
 
 ## How to run the samples?
 
-
 ### 1. Install electron
 
-`npm install -g electron`
+To run the samples, `electron` needs to be available globally and in `PATH`.
+
+```
+npm install -g electron
+```
+
+or
+
+```
+sudo npm install -g electron
+```
  
 ### 2. Navigate to any of the samples
 
-Every sample have a `fableconfig.json` file, so you only need to run:
+Every samples have a `fableconfig.json` file which contains configurations for fable. The only command needed is then `fable`:
 
 ```
 bash-3.2$ cd samples/material-ui/                                                                                                                                                                                                                                   

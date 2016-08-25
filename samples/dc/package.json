@@ -12,7 +12,7 @@
   "devDependencies": {
     "electron-prebuilt": "^1.2.5",
     "fable-import-d3": "0.0.2",
-    "fable-import-dc": "^0.0.1",
+    "fable-import-dc": "^0.0.2",
     "fable-import-electron": "^0.0.5",
     "source-map-loader": "^0.1.5",
     "webpack": "^1.13.1"

@@ -1,8 +1,7 @@
 // Load Fable.Core and bindings to JS global objects
-#r "../../../../build/fable/bin/Fable.Core.dll"
+#r "../node_modules/fable-core/Fable.Core.dll"
 #load "../node_modules/fable-import-d3/Fable.Import.D3.fs"
-// #load "../node_modules/fable-import-dc/Fable.Import.DC.fs"
-#load "../../../../import/dc/Fable.Import.DC.fs"
+#load "../node_modules/fable-import-dc/Fable.Import.DC.fs"
 
 open System
 open Fable.Core

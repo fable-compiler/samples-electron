@@ -7,7 +7,7 @@ open System
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
-type dc = Fable.Import.dc.Globals
+type dc = Fable.Import.DC.Globals
 
 let crossfilter = importDefault<obj->obj> "crossfilter"
 
@@ -28,13 +28,13 @@ D3.Globals.csv.Invoke("data/morley.csv", fun error experiments ->
             ?reduceSum(fun d -> (+d?Speed * +d?Run) / 1000)
 
     chart
-        .width.Invoke(768.)
-        .height.Invoke(480.)
-        .x.Invoke(D3.Scale.Globals.linear().domain([|6.;20.|]))
-        .dimension.Invoke(runDimension)
-        .group.Invoke(speedSumGroup)
-        .on.Invoke("renderlet", fun chart ->
-            chart.selectAll.Invoke("rect")?on("click", fun d ->
+        .width(768.)
+        .height(480.)
+        .x(D3.Scale.Globals.linear().domain([|6.;20.|]))
+        .dimension(runDimension)
+        .group(speedSumGroup)
+        .on("renderlet", fun chart ->
+            chart.selectAll("rect")?on("click", fun d ->
                 Browser.console.log("click!", d)
             ) |> ignore
         )

@@ -25,7 +25,7 @@ sudo npm install -g electron
  
 ### 2. Compile JS from .FSX
 
-Every samples have a `fableconfig.json` file which contains configurations for fable. The only command needed is then `fable`:
+Every samples have a `fableconfig.json` file which contains configurations for fable. The only command needed is `fable`:
 
 ```
 bash-3.2$ cd samples/material-ui/                                                                                                                                                                                                                                   
@@ -54,7 +54,7 @@ renderer.js.map  1.54 MB       1  [emitted]  renderer
 
 ### 3. Run electron sample
 
-When the compilation is done, there should be a `app/js/main.js`.
+When the compilation is done, there should be a `app/js/main.js` file.
 It is the entrypoint for electron.
 
 To run the sample execute the following command:
@@ -64,4 +64,10 @@ bash-3.2$ npm run start
                                                                                                                                                                                                                                                                     
 > @ start /Users/[USERNAME]/Projects/fable-electron/samples/material-ui                                                                                                                                                                                            
 > electron app/js/main.js 
+```
+
+or 
+
+```
+bash-3.2$ electron app/js/main.js
 ```

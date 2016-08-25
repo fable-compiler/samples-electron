@@ -7,10 +7,6 @@ Fable bindings and samples for Github Electron
 > The Electron framework lets you write cross-platform desktop applications using JavaScript, HTML and CSS. It is based on Node.js and Chromium and is used by the Atom editor and many other apps.
 > https://github.com/electron/electron
 
-Electron documentation official website: 
-[http://electron.atom.io/docs/](http://electron.atom.io/docs/)
-
-
 ## How to run the samples?
 
 

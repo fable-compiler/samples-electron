@@ -1,0 +1,43 @@
+{
+  "private": true,
+  "name": "fable-electron-browser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "fable",
+    "watch": "fable -w",
+    "start": "electron app/js/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Unlicense",
+  "dependencies": {
+    "electron": "^1.4.2",
+    "fable-core": "^0.6.7",
+    "react": "^15.3.1",
+    "react-addons-css-transition-group": "^15.3.1",
+    "react-dom": "^15.3.1",
+    "react-toolbox": "^1.2.1",
+    "react-electron-webview": "^1.0.7"
+  },
+  "devDependencies": {
+    "fable-compiler": "^0.6.11",
+    "fable-import-electron": "0.0.5",
+    "fable-import-react": "^0.5.2",
+    "fable-react-toolbox": "^0.6.0",
+    "fable-elmish": "^0.3.0",
+    "source-map-loader": "^0.1.5",
+    "webpack": "^1.13.1",
+    "autoprefixer": "^6.4.1",
+    "css-loader": "^0.25.0",
+    "extract-text-webpack-plugin": "^1.0.1",
+    "immutability-helper": "^2.0.0",
+    "node-sass": "^3.10.0",
+    "postcss-loader": "^0.13.0",
+    "react-hot-loader": "^3.0.0-beta.5",
+    "sass-loader": "^4.0.2",
+    "style-loader": "^0.13.1"
+  }
+}

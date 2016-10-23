@@ -20,14 +20,9 @@ type IFirstPersonControls =
 
 let ImprovedNoise = importMember<unit->IPerlin>("../app/js/ImprovedNoise.js")
 
-// This is a bit tricky: we need to emit "new", but we can't importMember and emit at the same time.
-// Also we convert from tuple to curried for the js to be correct below
-let FirstPersonControls : Three.Camera->Browser.HTMLElement -> IFirstPersonControls  = importMember<Three.Camera->Browser.HTMLElement -> IFirstPersonControls>("../app/js/FirstPersonControls.js") 
+let FirstPersonControls : obj = importMember "../app/js/FirstPersonControls.js"
 
-[<Emit("new FirstPersonControls($0...)")>]
-let New_FirstPersonControls(a,b)=  FirstPersonControls a b
-
-//Everything below is identical to the original fable browser sample, except for use of New_FirstPersonControls instead of FirstPersonControls
+//Everything below is identical to the original fable browser sample, except for use of createNew on FirstPersonControls
 
 let worldWidth = 256
 let worldDepth = 256
@@ -171,7 +166,7 @@ let init() =
     container.innerHTML <- ""
     container.appendChild(domElement) |> ignore
 
-    let controls = New_FirstPersonControls(camera :> Three.Camera, domElement )
+    let controls: IFirstPersonControls = createNew FirstPersonControls (camera :> Three.Camera, domElement) |> unbox
     controls.movementSpeed <- 1000.0
     controls.lookSpeed <- 0.1
 

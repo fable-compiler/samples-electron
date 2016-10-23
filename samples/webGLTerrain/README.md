@@ -1,19 +1,25 @@
-# fable-electron-browser
-An electron browser (webview) using fable to transpile js and vscode to debug the electron process using source maps, together with elmish UI using react and react-toolbox for rendering.
+# fable-electron-webGLTerrain
+An electron app that 
+- implements a webGLTerrain demo using three.js
+- uses fable to transpile js and vscode to debug the electron process using source maps
 
-Perhaps the most interesting thing in this sample is the use of event handlers on the `webview`.
+Notable changes to [fable browser sample](https://github.com/fable-compiler/Fable/tree/master/samples/browser/webGLTerrain)
 
-These are set in `componentDidMount` and are necessary for the correct display of the current URL in the navigation bar.
+- three.js is brought in via npm
+- node syntax used in source app/js to make available via node/webpack, e.g.
+```
+var  THREE = require('three')
+module.exports.FirstPersonControls = function ( object, domElement ) {
+```
+- different `importX` syntax used in F# to access this source app/js (see renderer.fsx)
 
 Adapted from 
 
-- [electron browser](https://github.com/hokein/electron-sample-apps/tree/master/webview/browser)
+- [fable browser webGLTerrain](https://github.com/fable-compiler/Fable/tree/master/samples/browser/webGLTerrain)
 - [electron-quick-start](https://github.com/electron/electron-quick-start)
 - [fable-electron](https://github.com/fable-compiler/fable-electron/tree/master/samples/helloworld)
 - [getting started with fable](http://kcieslak.io/Getting-Started-with-Fable-and-Webpack)
 - [debug electron apps with vscode](http://code.matsu.io/1)
-- [fable-elmish](https://github.com/fable-compiler/fable-elmish)
-- [fable-react-toolbox-starter](https://github.com/2sComplement/fable-react-toolbox-starter)
 
 ## What's Electron?
 
@@ -39,7 +45,6 @@ Additionally this sample adds
 - `fableconfig.json` - for [fable compiler options](http://fable.io/); tutorial [here](http://kcieslak.io/Getting-Started-with-Fable-and-Webpack)
 - `.vscode/launch.json` - for debugging in vscode; tutorial [here](http://code.matsu.io/1)
 - `.vscode/tasks.json` - for build/watch tasks; tutorial [here](http://kcieslak.io/Getting-Started-with-Fable-and-Webpack)
-- css from react and react-toolbox
 
 ## To Use
 
@@ -51,7 +56,7 @@ I've also installed these extensions:
 
 - [Debugger for Chrome](https://marketplace.visualstudio.com/items/msjsdiag.debugger-for-chrome). It must be version 1.1.0 or greater to allow breakpoints to be set in F#, see [here](https://github.com/octref/vscode-electron-debug/issues/2#issuecomment-251800254)
 
-   **Ionide-fsharp does not seem to be necessary but useful for intellisense**
+   **Ionide-fsharp does not seem to be necessary but slightly helpful for intellisense**
 
 From your command line:
 
@@ -62,9 +67,9 @@ From your command line:
 2. Build and Run
 
     * From command line
-      1. Go into the samples/browser directory
+      1. Go into the samples/webGLTerrain directory
 
-         `cd samples/browser`
+         `cd samples/webGLTerrain`
 
       2. Run fable (fableconfig.json contains the compiler options)
 
@@ -77,7 +82,7 @@ From your command line:
     * From VSCode
       1. Start VSCode from the samples directory
 
-         `code browser`
+         `code webGLTerrain`
       2. Run the build task
 
          `View -> Command Palette ; type run build task`
@@ -85,8 +90,6 @@ From your command line:
       4. Enter debug mode, select main or render debug dropdown depending on breakpoint location
       5. Run the debugger. Debugger will break at F# line corresponding to the location of your js breakpoint. You may need to `ctrl-r` in Electron to refresh and hit breakpoints in render process, see [here](http://code.matsu.io/1)
       6. Once the debugger has hit the breakpoint you can set other breakpoints in F# that will function. These breakpoints appear to be in the sourcemap. If you set breakpoints in the F# source proper they will not function as expected and show up as greyed out breakpoints in the debug view while the debug session is running.
-
-      **Alternatively you can use the debugger in Chrome tools which also does a lot of nice sourcemap work**
 
       **You can also run the `watch` task so that files are transpiled automatically on save. Enable by View -> Command Palette -> Type `tasks: run task` -> Select `watch`. Or ctrl-p and type `task watch`**
 

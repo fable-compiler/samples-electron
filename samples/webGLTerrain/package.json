@@ -1,0 +1,28 @@
+{
+  "private": true,
+  "name": "webglterrain",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "fable",
+    "watch": "fable -w",
+    "start": "electron app/js/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^1.4.2",
+    "fable-core": "^0.6.8",
+    "three": "^0.81.2"
+  },
+  "devDependencies": {
+    "fable-compiler": "^0.6.15",
+    "fable-import-electron": "0.0.5",
+    "source-map-loader": "^0.1.5",
+    "webpack": "^1.13.1",
+    "fable-import-three": "^0.0.3"
+  }
+}

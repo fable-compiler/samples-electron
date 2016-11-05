@@ -96,10 +96,10 @@ type ``[]``<'a> with
   member x.join(s) = join x s
 let createForceDirectedGraph(model:Model) =
 
-
-
-    let width, height = 960,500
-    let colors = MyD3?scale?category10();
+    let width = 960
+    let height = 500
+    let colors = D3.Scale.Globals.category10()
+    //MyD3?scale?category10();
 
     let graph = Browser.document.createElement_div()
 
@@ -111,7 +111,7 @@ let createForceDirectedGraph(model:Model) =
             ?attr("OnContextMenu", "return false;" )
             ?on("mount",fun () ->
 
-(*            let nodes = [|
+            let nodes = [|
                 createObj [ "id" ==> 0 ; "reflexive" ==> false ]
                 createObj [ "id" ==> 1 ; "reflexive" ==> true ]
                 createObj [ "id" ==> 2 ; "reflexive" ==> false ]
@@ -120,9 +120,9 @@ let createForceDirectedGraph(model:Model) =
             let links = [|
                 createObj [ "source" ==> nodes.[0] ; "target" ==> nodes.[1]; "left" ==> false; "right" ==> true ]
                 createObj [ "source" ==> nodes.[1] ; "target" ==> nodes.[2]; "left" ==> false; "right" ==> true ]
-            |]*)
+            |]
 
-            let nodes = 
+(*            let nodes = 
                 [|
                     {id=0; reflexive=false; x= 10.0 * rand() ;y=10.0 * rand()}
                     {id=1; reflexive=true; x=20.0 * rand();y=20.0 * rand()}
@@ -132,7 +132,7 @@ let createForceDirectedGraph(model:Model) =
                 [|
                     {source=nodes.[0]; target= nodes.[1]; left=false; right=true}
                     {source=nodes.[1]; target= nodes.[2]; left=false; right=true}
-                |]
+                |]*)
             let mutable lastNodeId =  2 //(nodes |> Array.maxBy( fun x -> x.id )).id
 
             //define arrow markers for graph links
@@ -179,54 +179,55 @@ let createForceDirectedGraph(model:Model) =
             // update force layout (called automatically each iteration)
             let tick() =
                 // draw directed edges with proper padding from node centers
-                path?attr("d", fun (d:Link) ->
+                //path?attr("d", fun (d:Link) ->
+                path?attr("d", fun d ->
 (*                    if d.target.x |> JS.isNaN then d.target.x <- rand() * 10.0
                     if d.source.x |> JS.isNaN then d.source.x <- rand() * 10.0
                     if d.target.y |> JS.isNaN then d.target.y <- rand() * 10.0
                     if d.source.y |> JS.isNaN then d.source.y <- rand() * 10.0*)
-                    d.target?px <- d.target.x 
+(*                    d.target?px <- d.target.x 
                     d.target?py <- d.target.y
                     d.source?px <- d.source.x 
-                    d.source?py <- d.source.y
-                    let x = 2
-                    let deltaX = d.target.x - d.source.x 
-                    let deltaY = d.target.y - d.source.y
+                    d.source?py <- d.source.y*)
+
+                    let deltaX = unbox<float>(d?target?x) - unbox<float>(d?source?x)
+                    let deltaY = unbox<float>(d?target?y) - unbox<float>(d?source?y)
                     let dist = Math.Sqrt(deltaX * deltaX + deltaY * deltaY)
                     let normX = deltaX / dist
                     let normY = deltaY / dist
-                    let sourcePadding = if d.left then 17.0 else 12.0
-                    let targetPadding = if d.right then 17.0 else 12.0
-                    let sourceX = d.source.x + (sourcePadding * normX)
-                    let sourceY = d.source.y + (sourcePadding * normY)
-                    let targetX = d.target.x - (targetPadding * normX)
-                    let targetY = d.target.y - (targetPadding * normY);
+                    let sourcePadding = if unbox<bool>(d?left) then 17.0 else 12.0
+                    let targetPadding = if unbox<bool>(d?right) then 17.0 else 12.0
+                    let sourceX = unbox<float>(d?source?x) + (sourcePadding * normX)
+                    let sourceY = unbox<float>(d?source?y) + (sourcePadding * normY)
+                    let targetX = unbox<float>(d?target?x) - (targetPadding * normX)
+                    let targetY = unbox<float>(d?target?y) - (targetPadding * normY);
                     "M" + sourceX.ToString() + "," + sourceY.ToString() + "L" + targetX.ToString() + "," + targetY.ToString();
                 ) |> ignore
 
                 circle?attr("transform", fun d ->
-                    "translate(" + (d?x).ToString() + "," + (d?y |> string) + ")";
+                    "translate(" + unbox<string>(d?x) + "," + unbox<string>(d?y) + ")";
                 )
             //init d3 force layout
             let force = 
                 D3.Layout.Globals.force()
-                    ?nodes( nodes )
+                    ?nodes(nodes)
                     ?links(links)
-                    ?size([|width,height|])
+                    ?size([|width;height|])
                     ?linkDistance(150)
                     ?charge(-500)
                     ?on("tick",tick)
 
             // mouse event vars
-            let mutable selected_node = emptyNode
-            let mutable selected_link = emptyLink
-            let mutable mousedown_link = emptyLink
-            let mutable mousedown_node = emptyNode
-            let mutable mouseup_node = emptyNode
+            let mutable selected_node = null//emptyNode
+            let mutable selected_link = null//emptyLink
+            let mutable mousedown_link = null//emptyLink
+            let mutable mousedown_node = null//emptyNode
+            let mutable mouseup_node = null//emptyNode
 
             let resetMouseVars() =
-                mousedown_node <- emptyNode;
-                mouseup_node <- emptyNode;
-                mousedown_link <- emptyLink;
+                mousedown_node <- null//emptyNode;
+                mouseup_node <- null//emptyNode;
+                mousedown_link <- null//emptyLink;
             
 
             // update graph (called when needed)
@@ -236,16 +237,16 @@ let createForceDirectedGraph(model:Model) =
 
                 // update existing links
                 path?classed("selected", fun d ->  d = selected_link; )
-                    ?style("marker-start", fun (d : Link) ->  if d.left then "url(#start-arrow)" else ""; )
-                    ?style("marker-end", fun (d : Link) ->  if d.right then "url(#end-arrow)" else ""; )
+                    ?style("marker-start", fun d ->  if unbox<bool>(d?left) then "url(#start-arrow)" else ""; )
+                    ?style("marker-end", fun d ->  if unbox<bool>(d?right) then "url(#end-arrow)" else ""; )
                     |> ignore
 
                 // add new links
                 path?enter()?append("svg:path")
                     ?attr("class", "link")
                     ?classed("selected", fun d ->  d = selected_link )
-                    ?style("marker-start", fun (d:Link) ->  if d.left then "url(#start-arrow)" else ""; )
-                    ?style("marker-end", fun (d:Link)  ->  if d.right then "url(#end-arrow)" else ""; )
+                    ?style("marker-start", fun d ->  if unbox<bool>(d.left) then "url(#start-arrow)" else ""; )
+                    ?style("marker-end", fun d  ->  if unbox<bool>(d.right) then "url(#end-arrow)" else ""; )
                     ?on("mousedown", fun d ->
                         
                         if  (Browser.event :?> Browser.KeyboardEvent).ctrlKey then 
@@ -254,10 +255,10 @@ let createForceDirectedGraph(model:Model) =
                             // select link
                             mousedown_link <- d;
                             if mousedown_link = selected_link then 
-                                selected_link <- emptyLink;
+                                selected_link <- null//emptyLink;
                             else 
                                 selected_link <- mousedown_link;
-                            selected_node <- emptyNode;
+                            selected_node <- null//emptyNode;
                             restart();
                     ) |> ignore
 
@@ -285,15 +286,19 @@ let createForceDirectedGraph(model:Model) =
                     ?style("stroke", fun d ->  MyD3?rgb(colors$(d?id))?darker()?toString(); )
                     ?classed("reflexive", fun d ->  d?reflexive; )
                     ?on("mouseover", fun d ->
-                        if mousedown_node = emptyNode|| d = mousedown_node then
+                        //if mousedown_node = emptyNode|| d = mousedown_node then
+                        //if mousedown_node = null|| d = mousedown_node then
+                        if d = mousedown_node then
                             ()
                         else
                             // enlarge target node
                             //dealing with "this" https://hstefanski.wordpress.com/2015/10/25/responding-to-d3-events-in-typescript/
-                            D3.Globals.select(Browser.event.currentTarget)?attr("transform", "scale(1?1)") |> ignore
+                            D3.Globals.select(Browser.event.currentTarget)?attr("transform", "scale(1.1)") |> ignore
                     )
                     ?on("mouseout", fun d ->
-                        if mousedown_node  = emptyNode || d = mousedown_node then
+                        //if mousedown_node  = emptyNode || d = mousedown_node then
+                        //if mousedown_node  = null || d = mousedown_node then
+                        if d = mousedown_node then
                             ()
                         else
                         // unenlarge target node
@@ -307,45 +312,23 @@ let createForceDirectedGraph(model:Model) =
                             // select node
                             mousedown_node <- d;
                             if mousedown_node = selected_node then
-                                selected_node <- emptyNode;
+                                selected_node <- null//emptyNode;
                             else 
                                 selected_node <- mousedown_node;
-                            selected_link <- emptyLink;
+                            selected_link <- null//emptyLink;
 
                             // reposition drag line
                             drag_line
                                 ?style("marker-end", "url(#end-arrow)")
                                 ?classed("hidden", false)
-                                ?attr("d", "M" + mousedown_node?x.ToString() + "," + mousedown_node?y.ToString() + "L" + mousedown_node?x.ToString() + "," + mousedown_node?y.ToString())
-                                |> ignore
-
-                            restart() |> ignore
-                    )
-                    ?on("mousedown", fun (d) ->
-                        let ctrlKey = (Browser.event :?> Browser.KeyboardEvent).ctrlKey
-                        //Browser.KeyboardEvent.prototype
-                        if ctrlKey then
-                            () 
-                        else
-                            // select node
-                            mousedown_node <- d;
-                            if mousedown_node = selected_node then
-                                selected_node <- emptyNode;
-                            else 
-                                selected_node <- mousedown_node;
-                            selected_link <- emptyLink;
-
-                            // reposition drag line
-                            drag_line
-                                ?style("marker-end", "url(#end-arrow)")
-                                ?classed("hidden", false)
-                                ?attr("d", "M" + mousedown_node?x.ToString() + "," + mousedown_node?y.ToString() + "L" + mousedown_node?x.ToString() + "," + mousedown_node?y.ToString())
+                                ?attr("d", "M" + unbox<string>(mousedown_node?x) + "," + unbox<string>(mousedown_node?y) + "L" + unbox<string>(mousedown_node?x) + "," + unbox<string>(mousedown_node?y))
                                 |> ignore
 
                             restart() |> ignore
                     )
                     ?on("mouseup", fun d ->
-                        if mousedown_node = emptyNode then
+                        //if mousedown_node = emptyNode then
+                        if mousedown_node = null then
                             ()
                         else
                             // needed by FF
@@ -364,8 +347,8 @@ let createForceDirectedGraph(model:Model) =
 
                                 // add link to graph (update if exists)
                                 // NB: links are strictly source < target; arrows separately specified by booleans
-                                let mutable source = emptyNode
-                                let mutable target = emptyNode
+                                let mutable source = null//emptyNode
+                                let mutable target = null//emptyNode
                                 let mutable direction = null;
 
                                 if (mousedown_node?id |> unbox<int> ) < ( mouseup_node?id |> unbox<int>) then
@@ -378,19 +361,22 @@ let createForceDirectedGraph(model:Model) =
                                     direction <- "left"
                                 
 
-                                let mutable link = (links?filter( fun (l : Link)-> l.source = (source |> unbox<Node>) && l.target = (target|> unbox<Node>)) |> unbox<Link array>).[0]
+                                //let mutable link = (links?filter( fun (l : Link)-> l.source = (source |> unbox<Node>) && l.target = (target|> unbox<Node>)) |> unbox<Link array>).[0]
+                                let mutable link = (links?filter( fun l -> unbox(l?source) = source  && unbox(l?target) = target ) |> unbox<obj array>).[0]
 
-                                if link <> emptyLink then
+                                //if link <> emptyLink then
+                                if link <> null then
                                     link?(direction) <- true;
                                 else 
-                                    link <- {source = source ; target =target ; left = false; right = false};
+                                    //link <- {source = source ; target =target ; left = false; right = false};
+                                    link <- createObj [ "source" ==> source; "target" ==> target; "left" ==> false; "right" ==> false ]
                                     link?(direction) <- true;
                                     links.push(link);
                                 
 
                                 // select new link
                                 selected_link <- link;
-                                selected_node <- emptyNode;
+                                selected_node <- null//emptyNode;
                                 restart();
                     ) 
                     |> ignore
@@ -420,30 +406,41 @@ let createForceDirectedGraph(model:Model) =
                 // because :active only works in WebKit?
                 D3.Globals.select("svg")?classed("active", true) |> ignore
 
-                if e|| mousedown_node <> emptyNode || mousedown_link <> emptyLink then
+                //if e|| mousedown_node <> emptyNode || mousedown_link <> emptyLink then
+                if e|| mousedown_node <> null || mousedown_link <> null then
                     ()
                 else
                     // insert new node at point
                     let x,y = D3.Globals.mouse(Browser.event.currentTarget)
-                    let  node = {id = lastNodeId + 1; reflexive = false; x = x ; y = y};
+                    //let  node = {id = lastNodeId + 1; reflexive = false; x = x ; y = y};
+                    lastNodeId <- lastNodeId + 1
+                    let node = 
+                        createObj [ 
+                            "id" ==> lastNodeId ; 
+                            "reflexive" ==> false ;
+                            "x" ==> x;
+                            "y" ==> y;
+                            ]
                     nodes.push(node);
 
                     restart();
             
 
             let mousemove() =
-                if mousedown_node = emptyNode then
+                //if mousedown_node = emptyNode then
+                if mousedown_node = null then
                     ()
                 else
                     // update drag line
                     let x,y = D3.Globals.mouse(Browser.event.currentTarget)
-                    drag_line?attr("d", "M" + ( mousedown_node?x |> unbox<string>) + "," + (mousedown_node?y |> unbox<string>) + "L" + x.ToString() + "," + y.ToString() ) |> ignore
+                    drag_line?attr("d", "M" + unbox<string>(mousedown_node?x) + "," + unbox<string>(mousedown_node?y ) + "L" + unbox<string>(x) + "," + unbox<string>(y) ) |> ignore
 
                     restart();
                     
 
             let mouseup() =
-                if mousedown_node <> emptyNode then
+                //if mousedown_node <> emptyNode then
+                if mousedown_node <> null then
                     // hide drag line
                     drag_line
                         ?classed("hidden", true)
@@ -457,8 +454,9 @@ let createForceDirectedGraph(model:Model) =
                 resetMouseVars();
 
             let spliceLinksForNode(node) =
-                    let toSplice = links?filter(fun (l : Link)->
-                        (l.source = node || l.target = node);
+                    //let toSplice = links?filter(fun (l : Link)->
+                    let toSplice = links?filter(fun l ->
+                        ( unbox(l?source) = node || unbox(l?target) = node);
                     )
                     toSplice?map(fun l ->
                         links?splice(links?indexOf(l), 1);
@@ -470,7 +468,7 @@ let createForceDirectedGraph(model:Model) =
             let mutable lastKeyDown = -1;
 
             let keydown() =
-                Browser.Event.prototype.preventDefault()
+                //Browser.Event.prototype.preventDefault()
 
                 let keyCode = int (Browser.event :?> Browser.KeyboardEvent).keyCode
                 //Browser.KeyboardEvent.prototype
@@ -485,43 +483,58 @@ let createForceDirectedGraph(model:Model) =
                         circle?call(force?drag) |> ignore
                         D3.Globals.select("svg")?classed("ctrl", true) |> ignore
                     
-                    if selected_node <> emptyNode && selected_link <> emptyLink then
+                    //if selected_node <> emptyNode && selected_link <> emptyLink then
+                    if selected_node <> null && selected_link <> null then
                         ()
                     else
                         match keyCode with
                         //backspace or delete
                         | 8 | 46 ->
-                            if selected_node <> emptyNode then
+                            //if selected_node <> emptyNode then
+                            if selected_node <> null then
                                 nodes?splice(nodes?indexOf(selected_node), 1) |> ignore
                                 spliceLinksForNode(selected_node) |> ignore
                                 ()
-                            else if selected_link <> emptyLink then
+                            //else if selected_link <> emptyLink then
+                            else if selected_link <> null then
                                 links?splice(links?indexOf(selected_link), 1) |> ignore
                                 ()
 
-                            selected_link <- emptyLink;
-                            selected_node <- emptyNode;
+                            selected_link <- null//emptyLink;
+                            selected_node <- null//emptyNode;
                             restart();
                         //B
                         | 66 ->
-                            if selected_link <> emptyLink then
+                            //if selected_link <> emptyLink then
+                            if selected_link <> null then
                                 // set link direction to both left and right
-                                selected_link <- {selected_link with left = true; right = true}
+                                //selected_link <- {selected_link with left = true; right = true}
+                                selected_link?left <- true
+                                selected_link?right <-true
+
                             restart();
                         //L
                         | 76 ->
-                            if selected_link <> emptyLink then
+                            //if selected_link <> emptyLink then
+                            if selected_link <> null then
                                 // set link direction to left only
-                                selected_link <- {selected_link with left = true; right = false}
+                                //selected_link <- {selected_link with left = true; right = false}
+                                selected_link?left <- true
+                                selected_link?right <-false
                             restart();
                         // R
                         | 82 ->
-                            if selected_node <> emptyNode then
+                            //if selected_node <> emptyNode then
+                            if selected_node <> null then
                                 // toggle node reflexivity
-                                selected_node <- {selected_node with reflexive = not selected_node.reflexive}
-                            else if selected_link  <> emptyLink then
+                                //selected_node <- {selected_node with reflexive = not selected_node.reflexive}
+                                selected_node?reflexive <- unbox<bool>(selected_node?reflexive) |> not
+                            //else if selected_link  <> emptyLink then
+                            else if selected_link  <> null then
                                 // set link direction to right only
-                                selected_link <- {selected_link with left = false; right = true}
+                                //selected_link <- {selected_link with left = false; right = true}
+                                selected_link?left <- false
+                                selected_link?right <-true
                             restart();
 
             let keyup() =
@@ -532,19 +545,24 @@ let createForceDirectedGraph(model:Model) =
                 // ctrl
                 if keyCode = 17 then
                     circle
-                        ?on("mousedown?drag", null)
-                        ?on("touchstart?drag", null)
+                        ?on("mousedown.drag", null)
+                        ?on("touchstart.drag", null)
                         |> ignore
                     svg?classed("ctrl", false) |> ignore
 
 
             // app starts here
-            D3.Globals.select("svg")?on("mousedown", mousedown)
+            D3.Globals.select("svg")
+                ?on("mousedown", mousedown)
                 ?on("mousemove", mousemove)
                 ?on("mouseup", mouseup)
+                |> ignore
+
+            D3.Globals.select( Browser.window )
                 ?on("keydown", keydown)
                 ?on("keyup", keyup)
                 |> ignore
+
             restart();
             )
 

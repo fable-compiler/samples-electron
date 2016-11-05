@@ -1,0 +1,17 @@
+{
+    "module": "commonjs",
+    "projFile": "src/files.fsx",
+    "sourceMaps": true,
+    "outDir": "temp",
+    "scripts": {
+        "prebuild": "npm install",
+        "postbuild": "node node_modules/webpack/bin/webpack"
+    },
+    "targets": {
+        "watch": {
+          "scripts": {
+            "postbuild-once": "webpack --watch"
+          }
+        }
+     }
+}

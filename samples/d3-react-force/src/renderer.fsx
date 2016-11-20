@@ -19,583 +19,229 @@ module R = Fable.Helpers.React
 module RT = Fable.Helpers.ReactToolbox
 
 open R.Props
-let MyD3 = importAll<obj> "d3"
 
 type RCom = React.ComponentClass<obj>
 let Component = importMember<RCom> "react-d3-library"
 
 
 // MODEL
+//note Node/Link conform to interface definitions in D3.Layout.Force
+//although f# does not have implicit interface implementations, the conversion to javascript seems to de facto do this
 type Node =
     {
-        id : int
-        reflexive : bool
-        mutable x : float
-        mutable y : float
+        index : float option
+        x : float option
+        y : float option
+        px : float option
+        py : float option
+        ``fixed``: bool option
+        weight: float option
     }
-let emptyNode = {id=0; reflexive=false;x=0.0;y=0.0}
 
-//  - links are always source < target; edge directions are set by 'left' and 'right'.
 type Link =
     {
         source : Node
         target : Node
-        left : bool
-        right : bool
     }
-let emptyLink = {source = emptyNode; target = emptyNode; left=false; right = false}
-let inline rand() = JS.Math.random()
-
 
 type Model = {
-(*    nodes: Node array
-    links: Link array*)
-    test : int
+    //from force we can recover the nodes/links as well as update the layout state
+    force: D3.Layout.Force<Link,Node>
     }
-    
-    
-(*let nodes = 
-    [|
-        {id=0; reflexive=false; x= 10.0 * rand() ;y=10.0 * rand()}
-        {id=1; reflexive=true; x=20.0 * rand();y=20.0 * rand()}
-        {id=2; reflexive=false; x=30.0 * rand();y=30.0 * rand()}
-    |]
-let links =
-        [|
-            {source=nodes.[0]; target= nodes.[1]; left=false; right=true}
-            {source=nodes.[1]; target= nodes.[2]; left=false; right=true}
-        |]*)
 let emptyModel =  
     { 
-(*        nodes = nodes
-        links = links*)
-        test = 0
+        force  = D3.Layout.Globals.force() :?> D3.Layout.Force<Link,Node> 
     }
     
 
 type Msg =
   | AddNoise
+  | AddNode
 
 let init() = emptyModel
 
-// UPDATE
-let update (msg:Msg) (model:Model)  =
-  match msg with
-  | AddNoise -> 
-        model
 
 // VIEW
-(*** define:arrayhacks ***)
-[<Fable.Core.Emit("$0.push($1)")>]
-let push (sb:'a[]) (v:'a) = failwith "js"
-[<Fable.Core.Emit("$0.join($1)")>]
-let join (sb:'a[]) (sep:string) = failwith "js"
+//we separate out this function to call it from both update methods and initial d3 graph constructor
+let restart(force : D3.Layout.Force<Link,Node>) =
+    let svg = D3.Globals.select("svg")
+    svg
+        ?selectAll("line.link")
+        ?data(force.links())
+        ?enter()
+        ?insert("svg:line", "circle.node")
+        ?attr("class", "link")
+        |> ignore
 
-type ``[]``<'a> with
-  member x.push(v) = push x v
-  member x.join(s) = join x s
-let createForceDirectedGraph(model:Model) =
+    svg
+        ?selectAll("circle.node")
+        ?data(force.nodes())
+        ?enter()
+        ?insert("svg:circle", "circle.cursor")
+        ?attr("class", "node")
+        ?attr("r", 5)
+        ?call(force.drag())
+        |> ignore
 
-    let width = 960
-    let height = 500
-    let colors = D3.Scale.Globals.category10()
-    //MyD3?scale?category10();
+    force.start();
 
+//this is called exactly once to initialize the d3 graph for react
+let createForceGraph( force : D3.Layout.Force<Link,Node> ) =
     let graph = Browser.document.createElement_div()
+
+    let width = 1280
+    let height = 800
+
+    //configure the force. Note the empty model force is not configured and has goofy defaults
+    force?charge(-80)?linkDistance(25)?size([|width; height|]) |> ignore
 
     let svg = 
         D3.Globals.select(graph)
-            ?append("svg")
+            ?append("svg:svg")
             ?attr("width", width )
             ?attr("height", height )
-            ?attr("OnContextMenu", "return false;" )
+            //special handler; part of react-d3-library pattern
             ?on("mount",fun () ->
 
-            let nodes = [|
-                createObj [ "id" ==> 0 ; "reflexive" ==> false ]
-                createObj [ "id" ==> 1 ; "reflexive" ==> true ]
-                createObj [ "id" ==> 2 ; "reflexive" ==> false ]
-            |]
-                
-            let links = [|
-                createObj [ "source" ==> nodes.[0] ; "target" ==> nodes.[1]; "left" ==> false; "right" ==> true ]
-                createObj [ "source" ==> nodes.[1] ; "target" ==> nodes.[2]; "left" ==> false; "right" ==> true ]
-            |]
+        //react-d3-library requires that we reselect
+        let svg = D3.Globals.select("svg")
 
-(*            let nodes = 
-                [|
-                    {id=0; reflexive=false; x= 10.0 * rand() ;y=10.0 * rand()}
-                    {id=1; reflexive=true; x=20.0 * rand();y=20.0 * rand()}
-                    {id=2; reflexive=false; x=30.0 * rand();y=30.0 * rand()}
-                |]
-            let links =
-                [|
-                    {source=nodes.[0]; target= nodes.[1]; left=false; right=true}
-                    {source=nodes.[1]; target= nodes.[2]; left=false; right=true}
-                |]*)
-            let mutable lastNodeId =  2 //(nodes |> Array.maxBy( fun x -> x.id )).id
+        svg
+            ?append("svg:rect")
+            ?attr("width", width)
+            ?attr("height", height)
+            |> ignore
 
-            //define arrow markers for graph links
-            let svg = D3.Globals.select("svg")
+        let cursor = 
             svg
-                ?append("svg:defs")
-                ?append("svg:marker")
-                ?attr("id", "end-arrow")
-                ?attr("viewBox", "0 -5 10 10")
-                ?attr("refX", 6)
-                ?attr("markerWidth", 3)
-                ?attr("markerHeight", 3)
-                ?attr("orient", "auto")
-                ?append("svg:path")
-                ?attr("d", "M0,-5L10,0L0,5")
-                ?attr("fill", "#000")
+                ?append("svg:circle")
+                ?attr("r", 30)
+                ?attr("transform", "translate(-100,-100)")
+                ?attr("class", "cursor")
+        
+        force.on("tick", fun _ ->
+            svg
+                ?selectAll("line.link")
+                ?attr("x1", fun (d : Link) -> d.source.x )
+                ?attr("y1", fun d ->  d.source.y)
+                ?attr("x2", fun d ->  d.target.x)
+                ?attr("y2", fun d ->  d.target.y)
                 |> ignore
 
             svg
-                ?append("svg:defs")
-                ?append("svg:marker")
-                ?attr("id", "start-arrow")
-                ?attr("viewBox", "0 -5 10 10")
-                ?attr("refX", 4)
-                ?attr("markerWidth", 3)
-                ?attr("markerHeight", 3)
-                ?attr("orient", "auto")
-                ?append("svg:path")
-                ?attr("d", "M10,-5L0,0L10,5")
-                ?attr("fill", "#000")
+                ?selectAll("circle.node")
+                ?attr("cx", fun d ->  d.x)
+                ?attr("cy", fun d ->  d.y)
                 |> ignore
+        ) |> ignore
 
-            // line displayed when dragging new nodes
-            let drag_line = 
-                svg
-                    ?append("svg:path")
-                    ?attr("class", "link dragline hidden")
-                    ?attr("d", "M0,0L0,0");
+        svg?on( "mousemove", fun _ -> 
+            let x,y = D3.Globals.mouse(Browser.event.currentTarget)
+            cursor?attr("transform", "translate(" + unbox<string>(x) + "," + unbox<string>(y) + ")")
+        ) |> ignore
 
-            // handles to link and node element groups
-            let mutable path = svg?append("svg:g")?selectAll("path")
-            let mutable circle = svg?append("svg:g")?selectAll("g");
+        svg?on("mousedown", fun () ->
+            //d3.event.preventDefault() //no equivalent?
+            ()
+        ) |> ignore
 
-            // update force layout (called automatically each iteration)
-            let tick() =
-                // draw directed edges with proper padding from node centers
-                //path?attr("d", fun (d:Link) ->
-                path?attr("d", fun d ->
-(*                    if d.target.x |> JS.isNaN then d.target.x <- rand() * 10.0
-                    if d.source.x |> JS.isNaN then d.source.x <- rand() * 10.0
-                    if d.target.y |> JS.isNaN then d.target.y <- rand() * 10.0
-                    if d.source.y |> JS.isNaN then d.source.y <- rand() * 10.0*)
-(*                    d.target?px <- d.target.x 
-                    d.target?py <- d.target.y
-                    d.source?px <- d.source.x 
-                    d.source?py <- d.source.y*)
+        svg?on("click", fun _ ->
+            let x,y = D3.Globals.mouse(Browser.event.currentTarget)
+            let node = {index = None; x = Some(x); y = Some(y); px = None; py = None; ``fixed``=None; weight = None}
+            let nodes = force.nodes()
+            let links = force.links() 
+            nodes?push(node) |> ignore
+        
+            // add links to any nearby nodes
+            nodes?forEach( fun target -> 
+                let x = 
+                    match target.x, node.x with
+                    | Some(t), Some(n) -> t-n
+                    | _,_ -> 0.0
 
-                    let deltaX = unbox<float>(d?target?x) - unbox<float>(d?source?x)
-                    let deltaY = unbox<float>(d?target?y) - unbox<float>(d?source?y)
-                    let dist = Math.Sqrt(deltaX * deltaX + deltaY * deltaY)
-                    let normX = deltaX / dist
-                    let normY = deltaY / dist
-                    let sourcePadding = if unbox<bool>(d?left) then 17.0 else 12.0
-                    let targetPadding = if unbox<bool>(d?right) then 17.0 else 12.0
-                    let sourceX = unbox<float>(d?source?x) + (sourcePadding * normX)
-                    let sourceY = unbox<float>(d?source?y) + (sourcePadding * normY)
-                    let targetX = unbox<float>(d?target?x) - (targetPadding * normX)
-                    let targetY = unbox<float>(d?target?y) - (targetPadding * normY);
-                    "M" + sourceX.ToString() + "," + sourceY.ToString() + "L" + targetX.ToString() + "," + targetY.ToString();
-                ) |> ignore
+                let y = 
+                    match target.y, node.y with 
+                    | Some( t), Some(n) -> t-n
+                    | _,_ -> 0.0
 
-                circle?attr("transform", fun d ->
-                    "translate(" + unbox<string>(d?x) + "," + unbox<string>(d?y) + ")";
-                )
-            //init d3 force layout
-            let force = 
-                D3.Layout.Globals.force()
-                    ?nodes(nodes)
-                    ?links(links)
-                    ?size([|width;height|])
-                    ?linkDistance(150)
-                    ?charge(-500)
-                    ?on("tick",tick)
-
-            // mouse event vars
-            let mutable selected_node = null//emptyNode
-            let mutable selected_link = null//emptyLink
-            let mutable mousedown_link = null//emptyLink
-            let mutable mousedown_node = null//emptyNode
-            let mutable mouseup_node = null//emptyNode
-
-            let resetMouseVars() =
-                mousedown_node <- null//emptyNode;
-                mouseup_node <- null//emptyNode;
-                mousedown_link <- null//emptyLink;
-            
-
-            // update graph (called when needed)
-            let rec restart() =
-                // path (link) group
-                path <- path?data(links)
-
-                // update existing links
-                path?classed("selected", fun d ->  d = selected_link; )
-                    ?style("marker-start", fun d ->  if unbox<bool>(d?left) then "url(#start-arrow)" else ""; )
-                    ?style("marker-end", fun d ->  if unbox<bool>(d?right) then "url(#end-arrow)" else ""; )
-                    |> ignore
-
-                // add new links
-                path?enter()?append("svg:path")
-                    ?attr("class", "link")
-                    ?classed("selected", fun d ->  d = selected_link )
-                    ?style("marker-start", fun d ->  if unbox<bool>(d.left) then "url(#start-arrow)" else ""; )
-                    ?style("marker-end", fun d  ->  if unbox<bool>(d.right) then "url(#end-arrow)" else ""; )
-                    ?on("mousedown", fun d ->
-                        
-                        if  (Browser.event :?> Browser.KeyboardEvent).ctrlKey then 
-                            ()
-                        else
-                            // select link
-                            mousedown_link <- d;
-                            if mousedown_link = selected_link then 
-                                selected_link <- null//emptyLink;
-                            else 
-                                selected_link <- mousedown_link;
-                            selected_node <- null//emptyNode;
-                            restart();
-                    ) |> ignore
-
-                // remove old links
-                path?exit()?remove() |> ignore
-
-
-                // circle (node) group
-                // NB: the function arg is crucial here! nodes are known by id, not by index!
-                circle <- circle?data(nodes, fun d -> d?id; ) 
-
-                // update existing nodes (reflexive & selected visual states)
-                circle?selectAll("circle")
-                    ?style("fill", fun d ->  if d = selected_node then MyD3?rgb(colors$(d?id))?brighter()?toString() else colors$(d?id); )
-                    ?classed("reflexive", fun d ->  d?reflexive; )
-                    |> ignore
-
-                // add new nodes
-                let g = circle?enter()?append("svg:g");
-
-                g?append("svg:circle")
-                    ?attr("class", "node")
-                    ?attr("r", 12)
-                    ?style("fill", fun d -> if d = selected_node then  MyD3?rgb(colors$(d?id))?brighter()?toString() else colors$(d?id); )
-                    ?style("stroke", fun d ->  MyD3?rgb(colors$(d?id))?darker()?toString(); )
-                    ?classed("reflexive", fun d ->  d?reflexive; )
-                    ?on("mouseover", fun d ->
-                        //if mousedown_node = emptyNode|| d = mousedown_node then
-                        //if mousedown_node = null|| d = mousedown_node then
-                        if d = mousedown_node then
-                            ()
-                        else
-                            // enlarge target node
-                            //dealing with "this" https://hstefanski.wordpress.com/2015/10/25/responding-to-d3-events-in-typescript/
-                            D3.Globals.select(Browser.event.currentTarget)?attr("transform", "scale(1.1)") |> ignore
-                    )
-                    ?on("mouseout", fun d ->
-                        //if mousedown_node  = emptyNode || d = mousedown_node then
-                        //if mousedown_node  = null || d = mousedown_node then
-                        if d = mousedown_node then
-                            ()
-                        else
-                        // unenlarge target node
-                            D3.Globals.select(Browser.event.currentTarget)?attr("transform", "") |> ignore
-                    )
-                    ?on("mousedown", fun (d) ->
-                        let ctrlKey = (Browser.event :?> Browser.KeyboardEvent).ctrlKey
-                        if ctrlKey then
-                            () 
-                        else
-                            // select node
-                            mousedown_node <- d;
-                            if mousedown_node = selected_node then
-                                selected_node <- null//emptyNode;
-                            else 
-                                selected_node <- mousedown_node;
-                            selected_link <- null//emptyLink;
-
-                            // reposition drag line
-                            drag_line
-                                ?style("marker-end", "url(#end-arrow)")
-                                ?classed("hidden", false)
-                                ?attr("d", "M" + unbox<string>(mousedown_node?x) + "," + unbox<string>(mousedown_node?y) + "L" + unbox<string>(mousedown_node?x) + "," + unbox<string>(mousedown_node?y))
-                                |> ignore
-
-                            restart() |> ignore
-                    )
-                    ?on("mouseup", fun d ->
-                        //if mousedown_node = emptyNode then
-                        if mousedown_node = null then
-                            ()
-                        else
-                            // needed by FF
-                            drag_line
-                                ?classed("hidden", true)
-                                ?style("marker-end", "")
-                                |> ignore
-
-                            // check for drag-to-self
-                            mouseup_node <- d;
-                            if mouseup_node = mousedown_node then
-                                resetMouseVars() |> ignore
-                            else
-                                // unenlarge target node
-                                D3.Globals.select(Browser.event.currentTarget)?attr("transform", "") |> ignore
-
-                                // add link to graph (update if exists)
-                                // NB: links are strictly source < target; arrows separately specified by booleans
-                                let mutable source = null//emptyNode
-                                let mutable target = null//emptyNode
-                                let mutable direction = null;
-
-                                if (mousedown_node?id |> unbox<int> ) < ( mouseup_node?id |> unbox<int>) then
-                                    source <- mousedown_node;
-                                    target <- mouseup_node;
-                                    direction <- "right"
-                                else 
-                                    source <- mouseup_node;
-                                    target <- mousedown_node;
-                                    direction <- "left"
-                                
-
-                                //let mutable link = (links?filter( fun (l : Link)-> l.source = (source |> unbox<Node>) && l.target = (target|> unbox<Node>)) |> unbox<Link array>).[0]
-                                let mutable link = (links?filter( fun l -> unbox(l?source) = source  && unbox(l?target) = target ) |> unbox<obj array>).[0]
-
-                                //if link <> emptyLink then
-                                if link <> null then
-                                    link?(direction) <- true;
-                                else 
-                                    //link <- {source = source ; target =target ; left = false; right = false};
-                                    link <- createObj [ "source" ==> source; "target" ==> target; "left" ==> false; "right" ==> false ]
-                                    link?(direction) <- true;
-                                    links.push(link);
-                                
-
-                                // select new link
-                                selected_link <- link;
-                                selected_node <- null//emptyNode;
-                                restart();
-                    ) 
-                    |> ignore
-
-                // show node IDs
-                g?append("svg:text")
-                    ?attr("x", 0)
-                    ?attr("y", 4)
-                    ?attr("class", "id")
-                    ?text(fun d ->  d?id; )
-                    |> ignore
-
-                // remove old nodes
-                circle?exit()?remove() |> ignore
-
-                // set the graph in motion
-                force?start() |> ignore
-
-            let mousedown() =
-                // prevent I-bar on drag
-                //d3?event?preventDefault();
-                let e = (Browser.event :?> Browser.KeyboardEvent).ctrlKey 
-                //MyD3?event?ctrlKey |> unbox<bool>
-                //Browser.KeyboardEvent.prototype
-                //Browser.MouseEvent.prototype
-
-                // because :active only works in WebKit?
-                D3.Globals.select("svg")?classed("active", true) |> ignore
-
-                //if e|| mousedown_node <> emptyNode || mousedown_link <> emptyLink then
-                if e|| mousedown_node <> null || mousedown_link <> null then
-                    ()
-                else
-                    // insert new node at point
-                    let x,y = D3.Globals.mouse(Browser.event.currentTarget)
-                    //let  node = {id = lastNodeId + 1; reflexive = false; x = x ; y = y};
-                    lastNodeId <- lastNodeId + 1
-                    let node = 
-                        createObj [ 
-                            "id" ==> lastNodeId ; 
-                            "reflexive" ==> false ;
-                            "x" ==> x;
-                            "y" ==> y;
-                            ]
-                    nodes.push(node);
-
-                    restart();
-            
-
-            let mousemove() =
-                //if mousedown_node = emptyNode then
-                if mousedown_node = null then
-                    ()
-                else
-                    // update drag line
-                    let x,y = D3.Globals.mouse(Browser.event.currentTarget)
-                    drag_line?attr("d", "M" + unbox<string>(mousedown_node?x) + "," + unbox<string>(mousedown_node?y ) + "L" + unbox<string>(x) + "," + unbox<string>(y) ) |> ignore
-
-                    restart();
-                    
-
-            let mouseup() =
-                //if mousedown_node <> emptyNode then
-                if mousedown_node <> null then
-                    // hide drag line
-                    drag_line
-                        ?classed("hidden", true)
-                        ?style("marker-end", "") |> ignore
-                    ()
-
-                // because :active only works in WebKit?
-                D3.Globals.select("svg")?classed("active", false) |> ignore
-
-                // clear mouse event vars
-                resetMouseVars();
-
-            let spliceLinksForNode(node) =
-                    //let toSplice = links?filter(fun (l : Link)->
-                    let toSplice = links?filter(fun l ->
-                        ( unbox(l?source) = node || unbox(l?target) = node);
-                    )
-                    toSplice?map(fun l ->
-                        links?splice(links?indexOf(l), 1);
-                    )
-                    |> ignore
-
-
-            // only respond once per keydown
-            let mutable lastKeyDown = -1;
-
-            let keydown() =
-                //Browser.Event.prototype.preventDefault()
-
-                let keyCode = int (Browser.event :?> Browser.KeyboardEvent).keyCode
-                //Browser.KeyboardEvent.prototype
-
-                if lastKeyDown <> -1 then 
-                    ()
-                else
-                    lastKeyDown <- int keyCode;
-
-                    // ctrl
-                    if keyCode = 17 then
-                        circle?call(force?drag) |> ignore
-                        D3.Globals.select("svg")?classed("ctrl", true) |> ignore
-                    
-                    //if selected_node <> emptyNode && selected_link <> emptyLink then
-                    if selected_node <> null && selected_link <> null then
-                        ()
-                    else
-                        match keyCode with
-                        //backspace or delete
-                        | 8 | 46 ->
-                            //if selected_node <> emptyNode then
-                            if selected_node <> null then
-                                nodes?splice(nodes?indexOf(selected_node), 1) |> ignore
-                                spliceLinksForNode(selected_node) |> ignore
-                                ()
-                            //else if selected_link <> emptyLink then
-                            else if selected_link <> null then
-                                links?splice(links?indexOf(selected_link), 1) |> ignore
-                                ()
-
-                            selected_link <- null//emptyLink;
-                            selected_node <- null//emptyNode;
-                            restart();
-                        //B
-                        | 66 ->
-                            //if selected_link <> emptyLink then
-                            if selected_link <> null then
-                                // set link direction to both left and right
-                                //selected_link <- {selected_link with left = true; right = true}
-                                selected_link?left <- true
-                                selected_link?right <-true
-
-                            restart();
-                        //L
-                        | 76 ->
-                            //if selected_link <> emptyLink then
-                            if selected_link <> null then
-                                // set link direction to left only
-                                //selected_link <- {selected_link with left = true; right = false}
-                                selected_link?left <- true
-                                selected_link?right <-false
-                            restart();
-                        // R
-                        | 82 ->
-                            //if selected_node <> emptyNode then
-                            if selected_node <> null then
-                                // toggle node reflexivity
-                                //selected_node <- {selected_node with reflexive = not selected_node.reflexive}
-                                selected_node?reflexive <- unbox<bool>(selected_node?reflexive) |> not
-                            //else if selected_link  <> emptyLink then
-                            else if selected_link  <> null then
-                                // set link direction to right only
-                                //selected_link <- {selected_link with left = false; right = true}
-                                selected_link?left <- false
-                                selected_link?right <-true
-                            restart();
-
-            let keyup() =
-                lastKeyDown <- -1;
+                if Math.Sqrt(x * x + y * y) < 30.0 then
+                    links?push({source= node; target= target}) |> ignore
                 
-                //let e = Browser.KeyboardEvent.prototype
-                let keyCode = int (Browser.event :?> Browser.KeyboardEvent).keyCode
-                // ctrl
-                if keyCode = 17 then
-                    circle
-                        ?on("mousedown.drag", null)
-                        ?on("touchstart.drag", null)
-                        |> ignore
-                    svg?classed("ctrl", false) |> ignore
+            ) |> ignore
 
-
-            // app starts here
-            D3.Globals.select("svg")
-                ?on("mousedown", mousedown)
-                ?on("mousemove", mousemove)
-                ?on("mouseup", mouseup)
-                |> ignore
-
-            D3.Globals.select( Browser.window )
-                ?on("keydown", keydown)
-                ?on("keyup", keyup)
-                |> ignore
-
-            restart();
-            )
-
+            restart( force )
+        )
+    )
+    //react-d3-library pattern has use return the dom element
     graph
 
+//Because we want to manipulate force programatically, it is global state we pass in as props
+type ForceDirectedGraphProps =
+    abstract force : D3.Layout.Force<Link,Node>
+
+type ForceDirectedGraphState = 
+    {
+        //state we truly don't touch - d3 dom is isolated
+        d3 : Browser.HTMLDivElement
+        //we want the d3 dom to render only once on mount
+        mounted : bool
+        //on mount, we supply force to d3 through state
+        force : D3.Layout.Force<Link,Node>
+    }
 
 type ForceDirectedGraph(props, ctx) as this =
-    inherit React.Component<obj, obj>(props, ctx)
-    do this.state <- createObj[ "d3" ==> "" ]
+    inherit React.Component<ForceDirectedGraphProps, ForceDirectedGraphState>(props, ctx)
+    do this.state <- { d3 = null; mounted = false; force = props.force}
 
+    //the react-d3-library pattern calls for d3 to be initialized when component mounts
     member this.componentDidMount() =
-        let model = unbox<Model>(ctx)
-        this.setState( createObj[ "d3" ==> createForceDirectedGraph(model) ] )
+        this.setState {this.state with mounted=true; d3 = createForceGraph(this.state.force)  }
+        
+    //re-rendering will destroy any mutation we've done in d3 since mounting
+    member this.shouldComponentUpdate () = not <| this.state.mounted
 
     member this.render() =
         R.div [] 
             [
-                React.createElement( Component, createObj[ "data" ==> this.state?d3 ], [||] ) //:?> React.ReactElement<obj>
-                //R.com<RCom,obj,obj> createObj[ "data" ==> this.state?d3 ] []
-                //React.createElement( rd3?Component , createObj[ "data" ==> this.state?d3 ], [||] ) :?> React.ReactElement<obj>
-                //   React.createElement("div", null, unbox (React.createElement( rd3?Component, createObj[ "data" ==> this.state?d3 ] ) ) 
-
+                //the react-d3-library pattern calls for d3 element to be passed in as prop called data
+                React.createElement( Component, createObj[ "data" ==> this.state.d3 ], [||] ) 
             ]
 
-
-let view model dispatch =
+let view (model : Model) dispatch =
     R.div [ ]
         [
             RT.button [ Label "Add Noise to Data"; Raised true;
                 OnClick( fun _ -> AddNoise |> dispatch)] []
-            //react here
-            R.com<ForceDirectedGraph,_,_> null []
+            RT.button [ Label "AddNode"; Raised true;
+                OnClick( fun _ -> AddNode |> dispatch)] []
+
+            R.com<ForceDirectedGraph,_,_> 
+                { new ForceDirectedGraphProps with
+                    member __.force = model.force
+                } []
          ]
+
+// UPDATE
+let inline rand() = JS.Math.random()
+
+let update (msg:Msg) (model:Model)  =
+  match msg with
+  | AddNoise -> 
+    //it is important to mutate existing nodes. if we create new ones, e.g. with Array.map, existing links will break
+    model.force.nodes()?forEach( fun node -> 
+        //even though node x/y is not mutable, we trick the compiler using the dynamic operator
+        node?x <- node.x |> Option.map( fun v -> v* 10.0*rand() )
+        node?y <- node.y |> Option.map( fun v -> v* 10.0*rand() )
+        ) |> ignore
+    restart( model.force ) |> ignore
+    model
+  | AddNode -> 
+    //again, it is important to mutate nodes and not replace them
+    let x,y = 10.0*rand(), 10.0*rand()
+    let node = {index = None; x = Some(x); y = Some(y); px = None; py = None; ``fixed``=None; weight = None}
+    model.force.nodes()?push(node) |> ignore
+    restart( model.force ) |> ignore
+    model
 
 // App
 let program = 
@@ -604,17 +250,13 @@ let program =
 
 type App() as this =
     inherit React.Component<obj, Model>()
-    
     let safeState state =
         match unbox this.props with 
         | false -> this.state <- state
         | _ -> this.setState state
-
     let dispatch = program |> Program.run safeState
-
     member this.componentDidMount() =
         this.props <- true
-
     member this.render() =
         view this.state dispatch
 

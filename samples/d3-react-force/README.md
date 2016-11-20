@@ -1,10 +1,10 @@
-# d3-react
+# d3-react-force
 An electron app that
-- Uses [react-faux-dom to render D3 elements with React](https://github.com/Olical/react-faux-dom)
-- Implements [d3 line chart](https://github.com/Olical/lab/tree/gh-pages/js/d3-to-react-again)
+- Uses [react-d3-library to render __animated__ D3 elements with React](http://react-d3-library.github.io/)
+- Implements [graph builder](https://mbostock.github.io/d3/talk/20110921/#27)
 - Uses fable to transpile js and vscode to debug the electron process using source maps
 - Uses [elmish UI, react, and react-toolbox for rendering](https://github.com/fable-compiler)
-- Via elmish UI updates the chart data using a stateless function
+- Via elmish UI updates the d3 graph (adding noise, adding nodes) using a statefull function
 
 Adapted from 
 
@@ -14,8 +14,9 @@ Adapted from
 - [debug electron apps with vscode](http://code.matsu.io/1)
 - [fable-elmish](https://github.com/fable-compiler/fable-elmish)
 - [fable-react-toolbox-starter](https://github.com/2sComplement/fable-react-toolbox-starter)
-- [d3-to-react-again](https://github.com/Olical/lab/blob/gh-pages/js/d3-to-react-again/main.js)
-- [meteor-typescript-libs](https://github.com/meteor-typescript/meteor-typescript-libs/blob/master/tinytest-definition-tests/d3-tests.ts)
+- [react-d3-library](https://github.com/react-d3-library/react-d3-library/wiki)
+- [graph builder](https://mbostock.github.io/d3/talk/20110921/#27)
+- [The Force with React + D3, Approach #3](http://bl.ocks.org/sxywu/fcef0e6dac231ef2e54b)
 
 ## What's Electron?
 
@@ -64,9 +65,9 @@ From your command line:
 2. Build and Run
 
     * From command line
-      1. Go into the samples/d3-react
+      1. Go into the samples/d3-react-force
 
-         `cd samples/d3-react`
+         `cd samples/d3-react-force`
 
       2. Run fable (fableconfig.json contains the compiler options)
 
@@ -79,7 +80,7 @@ From your command line:
     * From VSCode
       1. Start VSCode
 
-         `code d3-react`
+         `code d3-react-force`
       2. Run the build task
 
          `View -> Command Palette ; type run build task`

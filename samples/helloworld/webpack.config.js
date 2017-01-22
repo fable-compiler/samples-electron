@@ -1,7 +1,7 @@
 module.exports = {
   entry: {
-    main: "./temp/main",
-    renderer: "./temp/renderer"
+    main: "./temp/src/main",
+    renderer: "./temp/src/renderer"
   },
   output: {
     filename: "[name].js",
@@ -18,7 +18,8 @@ module.exports = {
   },
   devtool: "source-map",
   module: {
-    preLoaders: [{
+    rules: [{
+      enforce: "pre",
       loader: "source-map-loader",
       exclude: /node_modules/,
       test: /\.js$/

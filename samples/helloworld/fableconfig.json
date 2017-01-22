@@ -1,6 +1,5 @@
 {
-    "module": "commonjs",
-    "projFile": "src/files.fsx",
+    "projFile": ["src/main.fsx", "src/renderer.fsx"],
     "sourceMaps": true,
     "outDir": "temp",
     "scripts": {

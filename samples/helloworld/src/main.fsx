@@ -17,7 +17,7 @@ let createMainWindow () =
     let window = electron.BrowserWindow.Create(options)
 
     // Load the index.html of the app.
-    window.loadURL("file://" + Node.__dirname + "/../index.html");
+    window.loadURL("file://" + Node.path.join(Node.__dirname.Replace("\\", "/"), "/../index.html"));
 
     #if DEBUG
     fs.watch(Node.__dirname + "/renderer.js", fun _ ->

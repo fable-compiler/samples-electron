@@ -17,10 +17,13 @@ let createMainWindow () =
     let window = electron.BrowserWindow.Create(options)
 
     // Load the index.html of the app.
-    window.loadURL("file://" + Node.path.join(Node.__dirname.Replace("\\", "/"), "/../index.html"));
+    let opts = createEmpty<Node.url_types.UrlOptions>
+    opts.pathname <- Some <| Node.path.join(__SOURCE_DIRECTORY__,  "../app/index.html")
+    opts.protocol <- Some "file:"
+    window.loadURL(Node.url.format(opts))
 
     #if DEBUG
-    fs.watch(Node.__dirname + "/renderer.js", fun _ ->
+    fs.watch(Node.path.join(Node.__dirname, "renderer.js"), fun _ ->
         window.webContents.reloadIgnoringCache() |> ignore
     ) |> ignore
     #endif

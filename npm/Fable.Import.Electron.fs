@@ -317,7 +317,7 @@ module Electron =
         abstract show: bool option with get, set
         abstract frame: bool option with get, set
         abstract parent: BrowserWindow option with get, set
-        abstract model: bool option with get, set
+        abstract modal: bool option with get, set
         abstract acceptFirstMouse: bool option with get, set
         abstract disableAutoHideCursor: bool option with get, set
         abstract autoHideMenuBar: bool option with get, set

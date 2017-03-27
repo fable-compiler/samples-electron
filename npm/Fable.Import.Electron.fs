@@ -259,14 +259,15 @@ module Electron =
         abstract flags: ResizeArray<ThumbarButtonFlags> option with get, set
 
     and WebPreferences =
+        abstract devTools: bool option with get, set
         abstract nodeIntegration: bool option with get, set
+        abstract nodeIntegrationWorker: bool option with get, set
         abstract preload: string option with get, set
         abstract session: Session option with get, set
         abstract partition: string option with get, set
         abstract zoomFactor: float option with get, set
         abstract javascript: bool option with get, set
         abstract webSecurity: bool option with get, set
-        abstract allowDisplayingInsecureContent: bool option with get, set
         abstract allowRunningInsecureContent: bool option with get, set
         abstract images: bool option with get, set
         abstract textAreasAreResizable: bool option with get, set
@@ -275,14 +276,18 @@ module Electron =
         abstract plugins: bool option with get, set
         abstract experimentalFeatures: bool option with get, set
         abstract experimentalCanvasFeatures: bool option with get, set
-        abstract directWrite: bool option with get, set
+        abstract scrollBounce: bool option with get, set
         abstract blinkFeatures: string option with get, set
+        abstract disableBlinkFeatures: string option with get, set
         abstract defaultFontFamily: obj option with get, set
         abstract defaultFontSize: float option with get, set
         abstract defaultMonospaceFontSize: float option with get, set
         abstract minimumFontSize: float option with get, set
         abstract defaultEncoding: string option with get, set
         abstract backgroundThrottling: bool option with get, set
+        abstract offscreen: bool option with get, set
+        abstract sandbox: bool option with get, set
+        abstract contextIsolation: bool option with get, set
 
     and BrowserWindowOptions =
         inherit Rectangle
@@ -301,6 +306,7 @@ module Electron =
         abstract minimizable: bool option with get, set
         abstract maximizable: bool option with get, set
         abstract closable: bool option with get, set
+        abstract focusable: bool option with get, set
         abstract alwaysOnTop: bool option with get, set
         abstract fullscreen: bool option with get, set
         abstract fullscreenable: bool option with get, set
@@ -310,6 +316,8 @@ module Electron =
         abstract icon: U2<NativeImage, string> option with get, set
         abstract show: bool option with get, set
         abstract frame: bool option with get, set
+        abstract parent: BrowserWindow option with get, set
+        abstract model: bool option with get, set
         abstract acceptFirstMouse: bool option with get, set
         abstract disableAutoHideCursor: bool option with get, set
         abstract autoHideMenuBar: bool option with get, set
@@ -320,6 +328,9 @@ module Electron =
         abstract transparent: bool option with get, set
         abstract ``type``: BrowserWindowType option with get, set
         abstract titleBarStyle: string option with get, set
+        abstract thickFrame: bool option with get, set
+        abstract vibrancy: string option with get, set
+        abstract zoomToPageWidth: bool option with get, set
         abstract webPreferences: WebPreferences option with get, set
 
     and BrowserWindowType =

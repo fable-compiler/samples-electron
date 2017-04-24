@@ -516,10 +516,10 @@ module Electron =
         | Normal | Separator | Submenu | Checkbox | Radio
 
     and [<StringEnum>] MenuItemRole =
-        | Undo | Redo | Cut | Copy | Paste | Selectall | Minimize | Close
+        | Undo | Redo | Cut | Copy | Paste | Pasteandmatchstyle | Selectall | Delete | Minimize | Close | Quit | Reload | Forcereload | Toggledevtools | Togglefullscreen | Resetzoom | Zoomin | Zoomout | EditMenu | WindowMenu
 
     and [<StringEnum>] MenuItemRoleMac =
-        | About | Hide | Hideothers | Unhide | Front | Window | Help | Services
+        | About | Hide | Hideothers | Unhide | Startspeaking | Stopspeaking | Front | Zoom | Window | Help | Services
 
     and MenuItemOptions =
         abstract click: Func<MenuItem, BrowserWindow, unit> option with get, set

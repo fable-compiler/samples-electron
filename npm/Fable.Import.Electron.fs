@@ -157,6 +157,20 @@ module Electron =
     and [<StringEnum>] JumpListItemType =
         | Task | Separator | File
 
+    and LoginItemSettings =
+        abstract openAtLogin: bool with get, set
+        abstract openAsHidden: bool with get, set
+        abstract wasOpenedAtLogin: bool option with get, set
+        abstract wasOpenedAsHidden: bool option with get, set
+        abstract restoreState: bool option with get, set
+
+    and AboutPanelOptions =
+        abstract applicationName: string option with get, set
+        abstract applicationVersion: string option with get, set
+        abstract copyright: string option with get, set
+        abstract credits: string option with get, set
+        abstract version: string option with get, set
+
     and AutoUpdater =
         inherit NodeJS.EventEmitter
         [<Emit("$0.on('error',$1...)")>] abstract on_error: listener: Func<Error, unit> -> obj

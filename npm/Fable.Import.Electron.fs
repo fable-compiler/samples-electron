@@ -51,17 +51,22 @@ module Electron =
         [<Emit("$0.on('open-file',$1...)")>] abstract ``on_open-file``: listener: Func<Event, string, unit> -> obj
         [<Emit("$0.on('open-url',$1...)")>] abstract ``on_open-url``: listener: Func<Event, string, unit> -> obj
         [<Emit("$0.on('activate',$1...)")>] abstract on_activate: listener: Function -> obj
+        [<Emit("$0.on('continue-activity',$1...)")>] abstract ``on_continue-activity``: listener: Func<Event, string, obj, unit> -> obj
         [<Emit("$0.on('browser-window-blur',$1...)")>] abstract ``on_browser-window-blur``: listener: Func<Event, BrowserWindow, unit> -> obj
         [<Emit("$0.on('browser-window-focus',$1...)")>] abstract ``on_browser-window-focus``: listener: Func<Event, BrowserWindow, unit> -> obj
         [<Emit("$0.on('browser-window-created',$1...)")>] abstract ``on_browser-window-created``: listener: Func<Event, BrowserWindow, unit> -> obj
+        [<Emit("$0.on('web-contents-created',$1...)")>] abstract ``on_web-contents-created``: listener: Func<Event, WebContents, unit> -> obj
         [<Emit("$0.on('certificate-error',$1...)")>] abstract ``on_certificate-error``: listener: Func<Event, WebContents, string, string, Certificate, Func<bool, unit>, unit> -> obj
         [<Emit("$0.on('select-client-certificate',$1...)")>] abstract ``on_select-client-certificate``: listener: Func<Event, WebContents, string, ResizeArray<Certificate>, Func<Certificate, unit>, unit> -> obj
         [<Emit("$0.on('login',$1...)")>] abstract on_login: listener: Func<Event, WebContents, LoginRequest, LoginAuthInfo, Func<string, string, unit>, unit> -> obj
-        [<Emit("$0.on('gpu-process-crashed',$1...)")>] abstract ``on_gpu-process-crashed``: listener: Function -> obj
+        [<Emit("$0.on('gpu-process-crashed',$1...)")>] abstract ``on_gpu-process-crashed``: listener: Func<Event, bool, unit> -> obj
+        [<Emit("$0.on('accessibility-support-changed',$1...)")>] abstract ``on_accessibility-support-changed``: listener: Func<Event, bool, unit> -> obj
         [<Emit("$0.on('platform-theme-changed',$1...)")>] abstract ``on_platform-theme-changed``: listener: Function -> obj
         abstract on: ``event``: string * listener: Function -> obj
         abstract quit: unit -> unit
-        abstract exit: exitCode: float -> unit
+        abstract exit: ?exitCode: float -> unit
+        abstract relaunch: ?options: obj -> unit
+        abstract isReady: unit -> bool
         abstract focus: unit -> unit
         abstract hide: unit -> unit
         abstract show: unit -> unit
@@ -74,36 +79,52 @@ module Electron =
         abstract getLocale: unit -> string
         abstract addRecentDocument: path: string -> unit
         abstract clearRecentDocuments: unit -> unit
-        abstract setAsDefaultProtocolClient: protocol: string -> unit
-        abstract removeAsDefaultProtocolClient: protocol: string -> unit
-        abstract setUserTasks: tasks: ResizeArray<Task> -> unit
-        abstract allowNTLMCredentialsForAllDomains: allow: bool -> unit
-        abstract makeSingleInstance: callback: Func<ResizeArray<string>, string, bool> -> bool
+        abstract setAsDefaultProtocolClient: protocol: string * ?path: string * ?args: ResizeArray<string> -> bool
+        abstract removeAsDefaultProtocolClient: protocol: string * ?path: string * ?args: ResizeArray<string> -> bool
+        abstract isDefaultProtocolClient: protocol: string * ?path: string * ?args: ResizeArray<string> -> bool
+        abstract setUserTasks: tasks: ResizeArray<Task> -> bool
+        abstract getJumpListSettings: unit -> JumpListSettings
+        abstract setJumpList: categories: ResizeArray<JumpListCategory> -> SetJumpListResult
+        abstract makeSingleInstance: callback: Func<ResizeArray<string>, string, unit> -> bool
+        abstract releaseSingleInstance: unit -> unit
+        abstract setUserActivity: ``type``: string * userInfo: obj * ?webpageURL: string -> unit
+        abstract getCurrentActivityType: unit -> string
         abstract setAppUserModelId: id: string -> unit
-        abstract isAeroGlassEnabled: unit -> bool
-        abstract isDarkMode: unit -> bool
         abstract importCertificate: options: ImportCertificateOptions * callback: Func<float, unit> -> unit
+        abstract disableHardwareAcceleration: unit -> unit
+        abstract setBadgeCount: count: float -> bool
+        abstract getBadgeCount: unit -> float
+        abstract isUnityRunning: unit -> bool
+        abstract isAccessibilitySupportEnabled: unit -> bool
+        abstract getLoginItemSettings: unit -> LoginItemSettings
+        abstract setLoginItemSettings: settings: LoginItemSettings -> unit
+        abstract setAboutPanelOptions: options: AboutPanelOptions -> unit
 
     and [<StringEnum>] AppPathName =
-        | Home | AppData | UserData | Temp | Exe | Module | Desktop | Documents | Downloads | Music | Pictures | Videos
+        | Home | AppData | UserData | Temp | Exe | Module | Desktop | Documents | Downloads | Music | Pictures | Videos | PepperFlashSystemPlugin
 
     and ImportCertificateOptions =
         abstract certificate: string with get, set
         abstract password: string with get, set
 
     and CommandLine =
-        abstract appendSwitch: _switch: string * ?value: U2<string, float> -> unit
+        abstract appendSwitch: _switch: string * ?value: string -> unit
         abstract appendArgument: value: string -> unit
 
     and Dock =
-        abstract bounce: ?``type``: string -> float
+        abstract bounce: ?``type``: DockBounceType -> float
         abstract cancelBounce: id: float -> unit
+        abstract downloadFinished: filePath: string -> unit
         abstract setBadge: text: string -> unit
         abstract getBadge: unit -> string
         abstract hide: unit -> unit
         abstract show: unit -> unit
+        abstract isVisible: unit -> bool
         abstract setMenu: menu: Menu -> unit
         abstract setIcon: icon: U2<NativeImage, string> -> unit
+
+    and [<StringEnum>] DockBounceType =
+        | Critical | Informational
 
     and Task =
         abstract program: string with get, set
@@ -112,6 +133,29 @@ module Electron =
         abstract description: string option with get, set
         abstract iconPath: string with get, set
         abstract iconIndex: float option with get, set
+
+    and [<StringEnum>] SetJumpListResult =
+        | Ok | Error | InvalidSeparatorError | FileTypeRegistrationError | CustomCategoryAccessDeniedError
+
+    and JumpListSettings =
+        abstract minItems: float with get, set
+        abstract removedItems: ResizeArray<JumpListItem> with get, set
+
+    and JumpListCategory =
+        abstract ``type``: JumpListCategoryType option with get, set
+        abstract name: string option with get, set
+        abstract items: ResizeArray<JumpListItem> option with get, set
+
+    and [<StringEnum>] JumpListCategoryType =
+        | Tasks | Frequent | Recent | Custom
+
+    and JumpListItem =
+        abstract ``type``: JumpListItemType with get, set
+        abstract path: string option with get, set
+        abstract program: string option with get, set
+
+    and [<StringEnum>] JumpListItemType =
+        | Task | Separator | File
 
     and AutoUpdater =
         inherit NodeJS.EventEmitter

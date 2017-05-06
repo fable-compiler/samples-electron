@@ -1,0 +1,8 @@
+/node_modules/
+/obj/
+
+/app/js/*
+
+/npm-debug.log
+/yarn-error.log
+/.DS_Store

@@ -1,0 +1,28 @@
+{
+  "version": "0.1.0",
+  "command": "yarn",
+  "isShellCommand": true,
+  "showOutput": "always",
+  "suppressTaskName": true,
+  "tasks": [
+    {
+      "taskName": "install",
+      "args": ["install"]
+    },
+    {
+      "taskName": "build",
+      "args": ["run", "build"],
+      "isBuildCommand": true
+    },
+    {
+      "taskName": "watch",
+      "args": ["run", "watch"],
+      "isBackground": true
+    }
+    {
+      "taskName": "start",
+      "args": ["run", "start"],
+      "isBackground": true
+    }
+  ]
+}

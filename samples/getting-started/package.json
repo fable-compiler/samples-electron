@@ -1,0 +1,28 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "webpack -p",
+    "watch": "webpack -w", 
+    "start": "electron app/js/main.js"
+  },
+  "dependencies": {
+    "fable-core": "^1.0.0-narumi-912",
+    "material-ui": "^0.17.4",
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4",
+    "react-tap-event-plugin": "^2.0.1",
+    "babel-runtime": "^6.23.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.24.0",
+    "babel-loader": "^6.4.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-es2015": "^6.24.0",
+    "babel-preset-env": "^1.3.2",
+    "electron-prebuilt": "^1.4.13",
+    "fable-import-electron": "^0.0.7",
+    "fable-loader": "^1.0.0-narumi-912",
+    "fable-react": "^1.0.0-narumi-6",
+    "webpack": "^2.4.1"
+  }
+}

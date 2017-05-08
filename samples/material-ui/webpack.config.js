@@ -17,7 +17,7 @@ module.exports = {
   devtool: "source-map",
   entry: {
     main: resolve("./src/Main/Main.fsproj"),
-    renderer: resolve("./src/Renderer/renderer.fsproj")
+    renderer: resolve("./src/Renderer/Renderer.fsproj")
   },
   output: {
     filename: "[name].js",

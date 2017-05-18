@@ -36,7 +36,7 @@ module Electron =
             // member __.listenerCount(``type``: string): int = failwith "JS only"
             member __.emit(``event``: string, [<ParamArray>] args: obj[]): bool = failwith "JS only"
             member __.eventNames():  (ResizeArray<U2<string,Symbol>>) = failwith "JS only"
-            member __.defaultMaxListeners with get(): float = failwith "JS only"
+            member __.defaultMaxListeners with get(): float = failwith "JS only" and set(v) = failwith "JS only"
             member __.defaultMaxListeners with set(v) = failwith "JS only"
             //member __.defaultMaxListeners: float with set = failwith "JS only"
             member __.prependListener(``event``: U2<string,Symbol>, listener: Function): Node.Events.event_types.EventEmitter = failwith "JS only"

@@ -22,24 +22,34 @@ module ElectronPrivate =
 
 module Electron =
     type [<Import("EventEmitter", "electron")>] EventEmitter() =
-        interface NodeJS.EventEmitter with
-            member __.addListener(``event``: string, listener: Function): NodeJS.EventEmitter = failwith "JS only"
-            member __.on(``event``: string, listener: Function): NodeJS.EventEmitter = failwith "JS only"
-            member __.once(``event``: string, listener: Function): NodeJS.EventEmitter = failwith "JS only"
-            member __.removeListener(``event``: string, listener: Function): NodeJS.EventEmitter = failwith "JS only"
-            member __.removeAllListeners(?``event``: string): NodeJS.EventEmitter = failwith "JS only"
-            member __.setMaxListeners(n: int): unit = failwith "JS only"
+        interface Node.Events.event_types.EventEmitter with
+            member __.addListener(``event``: U2<string, Symbol>, listener: Function): Node.Events.event_types.EventEmitter = failwith "JS only"
+            member __.on(``event``: string, listener: ('a -> unit)): Node.Events.event_types.EventEmitter = failwith "JS only"
+            member __.on(``event``: Symbol, listener: ('a -> unit)): Node.Events.event_types.EventEmitter = failwith "JS only"
+            member __.once(``event``: string, listener: ('a -> unit)): Node.Events.event_types.EventEmitter = failwith "JS only"
+            member __.once(``event``: Symbol, listener: ('a -> unit)): Node.Events.event_types.EventEmitter = failwith "JS only"
+            member __.removeListener(``event``: U2<string, Symbol>, listener: Function): Node.Events.event_types.EventEmitter = failwith "JS only"
+            // member __.removeAllListeners(?``event``: U2<string, Symbol>): Node.Events.event_types.EventEmitter = failwith "JS only"
+            member __.setMaxListeners(n: int): Node.Events.event_types.EventEmitter = failwith "JS only"
             member __.getMaxListeners(): int = failwith "JS only"
-            member __.listeners(``event``: string): ResizeArray<Function> = failwith "JS only"
-            member __.listenerCount(``type``: string): int = failwith "JS only"
+            member __.listeners(``event``: U2<string, Symbol>): ResizeArray<Function> = failwith "JS only"
+            // member __.listenerCount(``type``: string): int = failwith "JS only"
             member __.emit(``event``: string, [<ParamArray>] args: obj[]): bool = failwith "JS only"
+            member __.eventNames():  (ResizeArray<U2<string,Symbol>>) = failwith "JS only"
+            member __.defaultMaxListeners with get(): float = failwith "JS only"
+            member __.defaultMaxListeners with set(v) = failwith "JS only"
+            //member __.defaultMaxListeners: float with set = failwith "JS only"
+            member __.prependListener(``event``: U2<string,Symbol>, listener: Function): Node.Events.event_types.EventEmitter = failwith "JS only"
+            member __.prependOnceListener(``event``: U2<string,Symbol>, listener: Function): Node.Events.event_types.EventEmitter = failwith "JS only"
+            member __.removeAllListener(``event``: U2<string,Symbol>, listener: Function): Node.Events.event_types.EventEmitter = failwith "JS only"
+            
 
     and Event =
         abstract preventDefault: Function with get, set
         abstract sender: EventEmitter with get, set
 
     and App =
-        inherit NodeJS.EventEmitter
+        inherit Node.Events.event_types.EventEmitter
         abstract commandLine: CommandLine with get, set
         abstract dock: Dock with get, set
         [<Emit("$0.on('will-finish-launching',$1...)")>] abstract ``on_will-finish-launching``: listener: Function -> obj
@@ -172,7 +182,7 @@ module Electron =
         abstract version: string option with get, set
 
     and AutoUpdater =
-        inherit NodeJS.EventEmitter
+        inherit Node.Events.event_types.EventEmitter
         [<Emit("$0.on('error',$1...)")>] abstract on_error: listener: Func<Error, unit> -> obj
         [<Emit("$0.on('checking-for-update',$1...)")>] abstract ``on_checking-for-update``: listener: Function -> obj
         [<Emit("$0.on('update-available',$1...)")>] abstract ``on_update-available``: listener: Function -> obj
@@ -193,7 +203,7 @@ module Electron =
         abstract removeDevToolsExtension: name: string -> unit
 
     and BrowserWindow =
-        inherit NodeJS.EventEmitter
+        inherit Node.Events.event_types.EventEmitter
         abstract webContents: WebContents with get, set
         abstract id: float with get, set
         [<Emit("$0.on('page-title-updated',$1...)")>] abstract ``on_page-title-updated``: listener: Func<Event, unit> -> obj
@@ -500,7 +510,7 @@ module Electron =
         abstract noLink: bool option with get, set
 
     and DownloadItem =
-        inherit NodeJS.EventEmitter
+        inherit Node.Events.event_types.EventEmitter
         [<Emit("$0.on('updated',$1...)")>] abstract on_updated: listener: Function -> obj
         [<Emit("$0.on('done',$1...)")>] abstract on_done: listener: Func<Event, (* TODO: StringEnum *) string, unit> -> obj
         abstract on: ``event``: string * listener: Function -> obj
@@ -523,7 +533,7 @@ module Electron =
         abstract unregisterAll: unit -> unit
 
     and IpcMain =
-        inherit NodeJS.EventEmitter
+        inherit Node.Events.event_types.EventEmitter
         abstract addListener: channel: string * listener: IpcMainEventListener -> obj
         abstract on: channel: string * listener: IpcMainEventListener -> obj
         abstract once: channel: string * listener: IpcMainEventListener -> obj
@@ -538,7 +548,7 @@ module Electron =
         abstract sender: WebContents with get, set
 
     and IpcRenderer =
-        inherit NodeJS.EventEmitter
+        inherit Node.Events.event_types.EventEmitter
         abstract addListener: channel: string * listener: IpcRendererEventListener -> obj
         abstract on: channel: string * listener: IpcRendererEventListener -> obj
         abstract once: channel: string * listener: IpcRendererEventListener -> obj
@@ -601,7 +611,7 @@ module Electron =
         abstract buildFromTemplate: template: ResizeArray<MenuItemOptions> -> Menu
 
     and Menu =
-        inherit NodeJS.EventEmitter
+        inherit Node.Events.event_types.EventEmitter
         abstract items: ResizeArray<MenuItem> with get, set
         abstract popup: ?browserWindow: BrowserWindow * ?x: float * ?y: float -> unit
         abstract append: menuItem: MenuItem -> unit
@@ -624,7 +634,7 @@ module Electron =
         abstract isTemplateImage: unit -> bool
 
     and PowerMonitor =
-        inherit NodeJS.EventEmitter
+        inherit Node.Events.event_types.EventEmitter
         [<Emit("$0.on('suspend',$1...)")>] abstract on_suspend: listener: Function -> obj
         [<Emit("$0.on('resume',$1...)")>] abstract on_resume: listener: Function -> obj
         [<Emit("$0.on('on-ac',$1...)")>] abstract ``on_on-ac``: listener: Function -> obj
@@ -683,7 +693,7 @@ module Electron =
 
     and Remote =
         inherit CommonElectron
-        abstract ``process``: NodeJS.Process with get, set
+        abstract ``process``: Node.Process.Process with get, set
         abstract require: ``module``: string -> obj
         abstract getCurrentWindow: unit -> BrowserWindow
         abstract getCurrentWebContents: unit -> WebContents
@@ -717,7 +727,7 @@ module Electron =
         | Bounds | WorkArea | ScaleFactor | Rotation
 
     and Screen =
-        inherit NodeJS.EventEmitter
+        inherit Node.Events.event_types.EventEmitter
         [<Emit("$0.on('display-added',$1...)")>] abstract ``on_display-added``: listener: Func<Event, Display, unit> -> obj
         [<Emit("$0.on('display-removed',$1...)")>] abstract ``on_display-removed``: listener: Func<Event, Display, unit> -> obj
         [<Emit("$0.on('display-metrics-changed',$1...)")>] abstract ``on_display-metrics-changed``: listener: Func<Event, Display, ResizeArray<DisplayMetrics>, unit> -> obj
@@ -733,7 +743,7 @@ module Electron =
         abstract fromPartition: partition: string -> Session
 
     and Session =
-        inherit NodeJS.EventEmitter
+        inherit Node.Events.event_types.EventEmitter
         abstract cookies: SessionCookies with get, set
         /// TODO: Cast this to electron.WebRequest
         abstract webRequest: obj with get, set
@@ -809,7 +819,7 @@ module Electron =
         abstract beep: unit -> unit
 
     and Tray =
-        inherit NodeJS.EventEmitter
+        inherit Node.Events.event_types.EventEmitter
         [<Emit("$0.on('click',$1...)")>] abstract on_click: listener: Func<Modifiers, Bounds, unit> -> obj
         [<Emit("$0.on('right-click',$1...)")>] abstract ``on_right-click``: listener: Func<Modifiers, Bounds, unit> -> obj
         [<Emit("$0.on('double-click',$1...)")>] abstract ``on_double-click``: listener: Func<Modifiers, Bounds, unit> -> obj
@@ -840,7 +850,7 @@ module Electron =
         abstract metaKey: bool with get, set
 
     and WebContents =
-        inherit NodeJS.EventEmitter
+        inherit Node.Events.event_types.EventEmitter
         abstract session: Session with get, set
         abstract hostWebContents: WebContents with get, set
         abstract devToolsWebContents: WebContents with get, set
@@ -1033,7 +1043,7 @@ module Electron =
         abstract canScroll: bool option with get, set
 
     and Debugger =
-        inherit NodeJS.EventEmitter
+        inherit Node.Events.event_types.EventEmitter
         abstract attach: ?protocolVersion: string -> unit
         abstract isAttached: unit -> bool
         abstract detach: unit -> unit

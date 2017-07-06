@@ -19,6 +19,7 @@
     "babel-preset-es2015": "^6.24.1",
     "electron": "^1.7.4",    
     "fable-loader": "^1.0.5",
-    "webpack": "^3.0.0"
+    "webpack": "^3.0.0",
+    "chokidar": "^1.7.0"
   }
 }

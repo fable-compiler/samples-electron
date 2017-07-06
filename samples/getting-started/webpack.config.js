@@ -46,7 +46,10 @@ module.exports = {
       },
       {
         test: /\.js$/,
-        exclude: /node_modules[\\\/](?!fable-)/,
+        exclude: [
+          /node_modules[\\\/](?!fable-)/,
+          /packages[\\\/](?!fable)/,
+          /src/],
         use: {
           loader: 'babel-loader',
           options: babelOptions

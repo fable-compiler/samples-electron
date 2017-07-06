@@ -21,12 +21,13 @@ let createMainWindow () =
     let window = electron.BrowserWindow.Create(options)
 
     // Load the index.html of the app.
-    window.loadURL("file://" + Node.__dirname + "/../index.html");
+    window.loadURL("file://" + Node.Globals.__dirname + "/../index.html");
 
     #if DEBUG
-    !>Node.fs.watch(Node.__dirname + "/renderer.js", fun _ ->
+    let rendererWatcher = Chokidar.Globals.watch (Node.Globals.__dirname + "/renderer.js", null)
+    rendererWatcher.on("change", fun _ ->
         window.webContents.reloadIgnoringCache()
-    )
+    )    
     #endif
 
     // Emitted when the window is closed.
@@ -47,7 +48,7 @@ let createMainWindow () =
 !>electron.app.on("window-all-closed", !!(fun () ->
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
-    if Node.``process``.platform <> "darwin" then
+    if Node.Globals.``process``.platform <> Node.Base.NodeJS.Darwin then
         electron.app.quit()
 ))
 

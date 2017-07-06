@@ -24,6 +24,11 @@ module.exports = {
     path: resolve("./app/js"),
     libraryTarget: "commonjs2"
   },
+  resolve: {
+    modules: [
+      "node_modules", resolve("./node_modules/")
+    ]
+  },
   externals: {
     electron: true
   },
@@ -46,7 +51,7 @@ module.exports = {
       },
       {
         test: /\.js$/,
-        exclude: /node_modules[\\\/](?!fable-)/,
+        exclude: /node_modules[\\\/](?!fable-)|packages[\\\/](?!fable)/,
         use: {
           loader: 'babel-loader',
           options: babelOptions

@@ -3,14 +3,27 @@ var webpack = require("webpack");
 const autoprefixer = require('autoprefixer');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
+function resolve(filePath) {
+  return path.join(__dirname, filePath)
+}
+
+var babelOptions = {
+  presets: [["es2015", { "modules": false }]],
+  plugins: ["transform-runtime"]
+}
+
+var isProduction = process.argv.indexOf("-p") >= 0;
+console.log("Bundling for " + (isProduction ? "production" : "development") + "...");
+
 var cfg = {
+  devtool: "source-map",
   entry: {
-    main: "./temp/main",
-    renderer: "./temp/renderer"
+    main: resolve("./src/Main/Main.fsproj"),
+    renderer: resolve("./src/Renderer/Renderer.fsproj")
   },
   output: {
     filename: "[name].js",
-    path: "./app/js",
+    path: resolve("./app/js"),
     libraryTarget: "commonjs2"
   },
   externals: {
@@ -21,27 +34,50 @@ var cfg = {
     __dirname: false,
     __filename: false
   },
-  devtool: "source-map",
   module: {
-    preLoaders: [{
-      loader: "source-map-loader",
-      exclude: /node_modules/,
-      test: /\.js$/
-    }],
-    loaders: [
-	  {
-        test: /(\.scss|\.css)$/,
-        loader: ExtractTextPlugin.extract('style', 'css?sourceMap&modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!postcss!sass')
+    rules: [
+      {
+        test: /\.fs(x|proj)?$/,
+        use: {
+          loader: "fable-loader",
+          options: {
+            babel: babelOptions,
+            define: isProduction ? [] : ["DEBUG"]
+          }
+        }
+      },
+      {
+        test: /\.js$/,
+        exclude: [
+          resolve('node_modules'),
+          /packages[\\\/](?!fable)/
+        ],
+        use: {
+          loader: 'babel-loader',
+          options: babelOptions
+        },
+      },
+      {
+        test: /\.scss$/,
+        use: [{
+          loader: "style-loader" // creates style nodes from JS strings
+        }, {
+          loader: "css-loader" // translates CSS into CommonJS
+        }, {
+          loader: "sass-loader" // compiles Sass to CSS
+        }]
+      },
+      {
+        test: /\.css$/,
+        use: ExtractTextPlugin.extract({
+          fallback: "style-loader",
+          use: "css-loader"
+        })
       }
-	]
-  },
-  postcss: [autoprefixer],
-  sassLoader: {
-    data: '@import "./app/css/_config.scss";',
-    includePaths: [path.resolve(__dirname, './out')]
+    ]
   },
   plugins: [
-    new ExtractTextPlugin('bundle.css', { allChunks: true })
+    new ExtractTextPlugin({ filename: 'bundle.css', allChunks: true })
   ]
 };
 module.exports = cfg

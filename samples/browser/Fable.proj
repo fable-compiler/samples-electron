@@ -1,0 +1,6 @@
+<!-- This file just installs the dotnet-fable CLI tool -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <DotNetCliToolReference Include="dotnet-fable" Version="1.1.6" />
+  </ItemGroup>
+</Project>

@@ -22,7 +22,7 @@ let inline (=>) x y = x ==> y
 open R.Props
 
 // MODEL
-
+[<Pojo>]
 type Model = {
     url : string
     }
@@ -97,30 +97,32 @@ let view model dispatch =
 
 // App
 
-let program =
+let program = 
     Program.mkSimple init update view
     |> Program.withConsoleTrace
+    
+    
 
 type App() as this =
     inherit React.Component<obj, Model>()
 
-    let safeState state =
-        match unbox this.props with
-        | false -> this.setState state
-        | _ -> this.setState state
+    // let safeState state =
+    //     match unbox this.props with
+    //     | false -> this.setState state
+    //     | _ -> this.setState state
 
-    let dispatch = program |> Program.run safeState
+    // let dispatch = program |> Program.run safeState
 
     member this.componentDidMount() =
         let webView = Browser.document.getElementById("webview")
         webView?addEventListener("did-start-loading",
-            fun ev -> UpdateNavigationUrl( "Loading..." ) |> dispatch ) |> ignore
+            fun ev -> UpdateNavigationUrl( "Loading..." ) |> program.update ) |> ignore
         webView?addEventListener("did-stop-loading",
-            fun () -> UpdateNavigationUrl (unbox (webView?getURL()))  |> dispatch ) |> ignore
-        this.props <- true
+            fun () -> UpdateNavigationUrl (unbox (webView?getURL()))  |> program.update ) |> ignore
+        //this.props <- true
 
-    member this.render() =
-        view this.state dispatch
+    // member this.render() =
+    //     view this.state program.update
 
 ReactDom.render(
         R.com<App,_,_> () [],

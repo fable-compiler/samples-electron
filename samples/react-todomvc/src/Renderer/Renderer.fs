@@ -1,7 +1,4 @@
-// Load Fable.Core and bindings to JS global objects
-#r "../node_modules/fable-core/Fable.Core.dll"
-#load "../node_modules/fable-import-react/Fable.Import.React.fs"
-#load "../node_modules/fable-import-react/Fable.Helpers.React.fs"
+module Renderer
 
 open System
 open Fable.Core
@@ -76,10 +73,11 @@ type TodoModel(key) =
 module R = Fable.Helpers.React
 open R.Props
 
-type TodoItemState = { editText: string }
+[<Fable.Core.Pojo>] type TodoItemState = { editText: string }
+[<Fable.Core.Pojo>]
 type TodoItemProps =
-    abstract key: Guid 
-    abstract todo: Todo 
+    abstract key: Guid
+    abstract todo: Todo
     abstract editing: bool
     abstract onSave: obj->unit
     abstract onEdit: obj->unit
@@ -93,11 +91,11 @@ let [<Literal>] ALL_TODOS = "all"
 let [<Literal>] ACTIVE_TODOS = "active"
 let [<Literal>] COMPLETED_TODOS = "completed"
 
-type TodoItem(props, ctx) as this =
-    inherit React.Component<TodoItemProps, TodoItemState>(props, ctx)
-    do this.state <- { editText = props.todo.title }
+type TodoItem(props) as this =
+    inherit React.Component<TodoItemProps, TodoItemState>(props)
+    do this.setInitState { editText = props.todo.title }
 
-    let mutable editField: obj option = None
+    let mutable editField: Browser.HTMLInputElement option = None
 
     member this.handleSubmit (e: React.SyntheticEvent) =
         match this.state.editText.Trim() with
@@ -131,11 +129,11 @@ type TodoItem(props, ctx) as this =
 
     member this.componentDidUpdate (prevProps: TodoItemProps) =
         if not prevProps.editing && this.props.editing then
-            let node =
-                ReactDom.findDOMNode(unbox editField.Value)
-                :?> Browser.HTMLInputElement
-            node.focus()
-            node.setSelectionRange(float node.value.Length, float node.value.Length)
+            match editField with
+            | Some field ->
+                field.focus()
+                field.setSelectionRange(float field.value.Length, float field.value.Length)
+            | None -> ()
 
     member this.render () =
         let className =
@@ -150,8 +148,8 @@ type TodoItem(props, ctx) as this =
                     ClassName "toggle"
                     Type "checkbox"
                     Checked this.props.todo.completed
-                    OnChange this.props.onToggle  
-                ] []
+                    OnChange this.props.onToggle
+                ]
                 R.label [ OnDoubleClick this.handleEdit ]
                         [ unbox this.props.todo.title ]
                 R.button [
@@ -160,22 +158,23 @@ type TodoItem(props, ctx) as this =
             ]
             R.input [
                 ClassName "edit"
-                Ref (fun x -> editField <- Some x)
+                Ref (fun x -> editField <- Some (x :?> Browser.HTMLInputElement))
                 Value (U2.Case1 this.state.editText)
                 OnBlur this.handleSubmit
                 OnChange this.handleChange
                 OnKeyDown this.handleKeyDown
-            ] []
+            ]
         ]
 
+[<Fable.Core.Pojo>]
 type TodoFooterProps =
     abstract count: int
     abstract completedCount: int
     abstract onClearCompleted: obj->unit
     abstract nowShowing: string
 
-type TodoFooter(props, ctx) =
-    inherit React.Component<TodoFooterProps,obj>(props, ctx)
+type TodoFooter(props) =
+    inherit React.Component<TodoFooterProps,obj>(props)
     member this.render () =
         let activeTodoWord =
             "item" + (if this.props.count = 1 then "" else "s")
@@ -216,12 +215,12 @@ type TodoFooter(props, ctx) =
             ]
         ]
 
-type TodoAppProps = { model: TodoModel }
-type TodoAppState = { nowShowing: string; editing: Guid option; newTodo: string }
+[<Fable.Core.Pojo>] type TodoAppProps = { model: TodoModel }
+[<Fable.Core.Pojo>] type TodoAppState = { nowShowing: string; editing: Guid option; newTodo: string }
 
-type TodoApp(props, ctx) as this =
-    inherit React.Component<TodoAppProps, TodoAppState>(props, ctx)
-    do this.state <- { nowShowing=ALL_TODOS; editing=None; newTodo="" }
+type TodoApp(props) as this =
+    inherit React.Component<TodoAppProps, TodoAppState>(props)
+    do this.setInitState { nowShowing=ALL_TODOS; editing=None; newTodo="" }
 
     member this.componentDidMount () =
         let nowShowing category =
@@ -271,7 +270,7 @@ type TodoApp(props, ctx) as this =
 
     member this.render () =
         let todos = this.props.model.todos
-        let todoItems = 
+        let todoItems =
             todos
             |> Seq.filter (fun todo ->
                 match this.state.nowShowing with
@@ -318,7 +317,7 @@ type TodoApp(props, ctx) as this =
                         Type "checkbox"
                         OnChange this.toggleAll
                         Checked (activeTodoCount = 0)
-                    ] []
+                    ]
                     R.ul [ ClassName "todo-list" ] todoItems
                 ] |> Some
             else None
@@ -332,7 +331,7 @@ type TodoApp(props, ctx) as this =
                     OnKeyDown this.handleNewTodoKeyDown
                     OnChange this.handleChange
                     AutoFocus true
-                ] []
+                ]
             ]
             main.Value
             footer.Value

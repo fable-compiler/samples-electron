@@ -1,10 +1,12 @@
-#r "../node_modules/fable-core/Fable.Core.dll"
-#load "../node_modules/fable-import-electron/Fable.Import.Electron.fs"
+module Main
 
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.Electron
+
+// Convinience operator to ignore results
+let inline (!>) x = ignore x
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -17,37 +19,39 @@ let createMainWindow () =
     let window = electron.BrowserWindow.Create(options)
 
     // Load the index.html of the app.
-    window.loadURL("file://" + Node.__dirname + "/../index.html");
+    window.loadURL("file://" + Node.Globals.__dirname + "/../index.html");
+
 
     #if DEBUG
-    fs.watch(Node.__dirname + "/renderer.js", fun _ ->
-        window.webContents.reloadIgnoringCache() |> ignore
-    ) |> ignore
+    let rendererWatcher = Chokidar.Globals.watch (Node.Globals.__dirname + "/renderer.js", null)
+    rendererWatcher.on("change", fun _ ->
+        window.webContents.reloadIgnoringCache()
+    )
     #endif
 
     // Emitted when the window is closed.
-    window.on("closed", unbox(fun () ->
+    !>window.on("closed", !!(fun () ->
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
         mainWindow <- Option.None
-    )) |> ignore
+    ))
 
     mainWindow <- Some window
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
-electron.app.on("ready", unbox createMainWindow)
+!>electron.app.on("ready", !!createMainWindow)
 
 // Quit when all windows are closed.
-electron.app.on("window-all-closed", unbox(fun () ->
+!>electron.app.on("window-all-closed", !!(fun () ->
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
-    if Node.``process``.platform <> "darwin" then
+    if Node.Globals.``process``.platform <> Node.Base.NodeJS.Darwin then
         electron.app.quit()
 ))
 
-electron.app.on("activate", unbox(fun () ->
+!>electron.app.on("activate", !!(fun () ->
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if mainWindow.IsNone then

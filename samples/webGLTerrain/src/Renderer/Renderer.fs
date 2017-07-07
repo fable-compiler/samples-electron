@@ -1,5 +1,4 @@
-#r "../node_modules/fable-core/Fable.Core.dll"
-#load "../node_modules/fable-import-three/Fable.Import.Three.fs"
+module Renderer
 
 open Fable.Import
 open System
@@ -18,9 +17,9 @@ type IFirstPersonControls =
     abstract handleResize: unit -> unit
     abstract update: float -> unit
 
-let ImprovedNoise = importMember<unit->IPerlin>("../app/js/ImprovedNoise.js")
+let ImprovedNoise = importMember<unit->IPerlin>("../../app/js/ImprovedNoise.js")
 
-let FirstPersonControls : obj = importMember "../app/js/FirstPersonControls.js"
+let FirstPersonControls : obj = importMember "../../app/js/FirstPersonControls.js"
 
 //Everything below is identical to the original fable browser sample, except for use of createNew on FirstPersonControls
 
@@ -63,7 +62,7 @@ To generate the textures for the terrain, we'll be using a canvas element
 to draw the image and later pass it directly to THREE.Texture class.
 *)
 
-let generateTexture (data:float[]) (width:int) (height:int) = 
+let generateTexture (data:float[]) (width:int) (height:int) =
     let vector3 = Three.Vector3(0.0, 0.0, 0.0)
     let sun = (Three.Vector3(1.0, 1.0, 1.0) :> Three.Vector).normalize()
 
@@ -158,7 +157,7 @@ let init() =
     let camera = Three.PerspectiveCamera(
                     60.0, getWidth() / getHeight(), 1.0, 20000.0)
     let scene = Three.Scene()
-    
+
     let renderer = Three.WebGLRenderer()
     renderer.setClearColor("#bfd1e5")
     (renderer :> Three.Renderer).setSize(getWidth(), getHeight())

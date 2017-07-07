@@ -27,7 +27,7 @@ module.exports = {
   externals: {
     electron: true
   },
-  target: "node",  
+  target: "node",
   node: {
     __dirname: false,
     __filename: false
@@ -46,10 +46,10 @@ module.exports = {
       },
       {
         test: /\.js$/,
-        exclude: [ 
-          /node_modules[\\\/](?!fable-)/, 
+        exclude: [
+          /node_modules[\\\/](?!fable-)/,
           /packages[\\\/](?!fable)/
-          ], 
+          ],
         use: {
           loader: 'babel-loader',
           options: babelOptions

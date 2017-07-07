@@ -1,9 +1,4 @@
-// Load Fable.Core and bindings to JS global objects
-#r "../node_modules/fable-core/Fable.Core.dll"
-#load "../node_modules/fable-import-react/Fable.Import.React.fs"
-#load "../node_modules/fable-import-react/Fable.Helpers.React.fs"
-#load "../node_modules/fable-react-toolbox/Fable.Helpers.ReactToolbox.fs"
-#load "../node_modules/fable-elmish/elmish.fs"
+module Renderer
 
 open System
 open Fable.Core
@@ -14,12 +9,13 @@ open Fable.Import.Node
 open Fable.Helpers.ReactToolbox
 open Fable.Helpers.React.Props
 open Elmish
+open Elmish.React
 
 module R = Fable.Helpers.React
 module RT = Fable.Helpers.ReactToolbox
 
 type RCom = React.ComponentClass<obj>
-let WebView = importDefault<RCom> "react-electron-webview" 
+let WebView = importDefault<RCom> "react-electron-webview"
 let inline (!!) x = createObj x
 let inline (=>) x y = x ==> y
 
@@ -70,13 +66,13 @@ let update (msg:Msg) (model:Model)  =
 
 // VIEW
 let internal onClick msg dispatch =
-    OnClick <| fun _ -> msg |> dispatch 
+    OnClick <| fun _ -> msg |> dispatch
 
 let [<Literal>] ENTER_KEY = 13.
 let internal onEnter msg dispatch =
-    function 
+    function
     | (ev:React.KeyboardEvent) when ev.keyCode = ENTER_KEY ->
-        ev.preventDefault() 
+        ev.preventDefault()
         dispatch msg
     | _ -> ()
     |> OnKeyDown
@@ -89,7 +85,7 @@ let view model dispatch =
             RT.iconButton [ Icon "arrow_forward"; onClick NavigateForward dispatch][]
             RT.iconButton [ Icon "refresh"; onClick Refresh dispatch][]
             RT.iconButton [ Icon "close"; onClick Close dispatch][]
-            RT.input [ Type "text"; InputProps.Value model.url; InputProps.OnChange ( Url >> dispatch ); onEnter Navigate dispatch ] []               
+            RT.input [ Type "text"; InputProps.Value model.url; InputProps.OnChange ( Url >> dispatch ); onEnter Navigate dispatch ] []
         ]
         R.from WebView
             !![
@@ -101,31 +97,31 @@ let view model dispatch =
 
 // App
 
-let program = 
-    Program.mkSimple init update
+let program =
+    Program.mkSimple init update view
     |> Program.withConsoleTrace
 
 type App() as this =
     inherit React.Component<obj, Model>()
-    
+
     let safeState state =
-        match unbox this.props with 
-        | false -> this.state <- state
+        match unbox this.props with
+        | false -> this.setState state
         | _ -> this.setState state
 
     let dispatch = program |> Program.run safeState
 
     member this.componentDidMount() =
         let webView = Browser.document.getElementById("webview")
-        webView?addEventListener("did-start-loading", 
+        webView?addEventListener("did-start-loading",
             fun ev -> UpdateNavigationUrl( "Loading..." ) |> dispatch ) |> ignore
-        webView?addEventListener("did-stop-loading", 
+        webView?addEventListener("did-stop-loading",
             fun () -> UpdateNavigationUrl (unbox (webView?getURL()))  |> dispatch ) |> ignore
         this.props <- true
 
     member this.render() =
         view this.state dispatch
-        
+
 ReactDom.render(
         R.com<App,_,_> () [],
         Browser.document.getElementById("app")

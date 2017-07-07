@@ -1,6 +1,5 @@
 module App.Main
 
-open Fable.Import
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
@@ -27,7 +26,7 @@ let createMainWindow () =
     let rendererWatcher = Chokidar.Globals.watch (Node.Globals.__dirname + "/renderer.js", null)
     rendererWatcher.on("change", fun _ ->
         window.webContents.reloadIgnoringCache()
-    )    
+    )
     #endif
 
     // Emitted when the window is closed.

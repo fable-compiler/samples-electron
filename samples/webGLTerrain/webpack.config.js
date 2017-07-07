@@ -1,11 +1,27 @@
+var path = require("path");
+var webpack = require("webpack");
+
+function resolve(filePath) {
+  return path.join(__dirname, filePath)
+}
+
+var babelOptions = {
+  presets: [["es2015", { "modules": false }]],
+  plugins: ["transform-runtime"]
+}
+
+var isProduction = process.argv.indexOf("-p") >= 0;
+console.log("Bundling for " + (isProduction ? "production" : "development") + "...");
+
 module.exports = {
+  devtool: "source-map",
   entry: {
-    main: "./temp/main",
-    renderer: "./temp/renderer"
+    main: resolve("./src/Main/Main.fsproj"),
+    renderer: resolve("./src/Renderer/Renderer.fsproj")
   },
   output: {
     filename: "[name].js",
-    path: "./app/js",
+    path: resolve("./app/js"),
     libraryTarget: "commonjs2"
   },
   externals: {
@@ -16,12 +32,30 @@ module.exports = {
     __dirname: false,
     __filename: false
   },
-  devtool: "source-map",
   module: {
-    preLoaders: [{
-      loader: "source-map-loader",
-      exclude: /node_modules/,
-      test: /\.js$/
-    }]
+    rules: [
+      {
+        test: /\.fs(x|proj)?$/,
+        use: {
+          loader: "fable-loader",
+          options: {
+            babel: babelOptions,
+            define: isProduction ? [] : ["DEBUG"]
+          }
+        }
+      },
+      {
+        test: /\.js$/,
+        exclude: [
+          /node_modules[\\\/](?!fable-)/,
+          /packages[\\\/](?!fable)/,
+          /app/
+          ],
+        use: {
+          loader: 'babel-loader',
+          options: babelOptions
+        },
+      }
+    ]
   }
 };

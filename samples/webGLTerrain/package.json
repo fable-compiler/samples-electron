@@ -5,24 +5,27 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "fable",
-    "watch": "fable -w",
-    "start": "electron app/js/main.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack -p",
+    "watch": "webpack -w",
+    "start": "electron app/js/main.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "electron": "^1.4.2",
-    "fable-core": "^0.6.8",
+    "babel-runtime": "6.23.0",
+    "electron": "^1.7.4",
     "three": "^0.81.2"
   },
   "devDependencies": {
-    "fable-compiler": "^0.6.15",
-    "fable-import-electron": "0.0.5",
+    "babel-core": "6.1.21",
+    "babel-loader": "^7.1.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-es2015": "^6.24.1",
+    "fable-loader": "^1.0.5",
     "source-map-loader": "^0.1.5",
-    "webpack": "^1.13.1",
-    "fable-import-three": "^0.0.3"
+    "webpack": "3.0.0",
+    "fable-import-three": "^0.0.4",
+    "chokidar": "1.7.0"
   }
 }

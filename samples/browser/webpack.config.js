@@ -49,7 +49,7 @@ var cfg = {
       {
         test: /\.js$/,
         exclude: [
-          resolve('node_modules'),
+          /node_modules/,
           /packages[\\\/](?!fable)/
         ],
         use: {

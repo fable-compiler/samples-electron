@@ -254,3 +254,6 @@ paket-files/
 # Samples
 samples/*/app/*
 samples/*/temp/*
+sample/app/bundle\.js*
+
+sample/out/

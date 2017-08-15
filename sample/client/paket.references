@@ -1,0 +1,5 @@
+dotnet-fable
+FSharp.Core
+Fable.Core
+FSharp.NET.Sdk
+Fable.Import.Browser

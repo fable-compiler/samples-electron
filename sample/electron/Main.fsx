@@ -1,7 +1,7 @@
 #r "./../packages/Fable.Core/lib/netstandard1.6/Fable.Core.dll"
 #r "./../packages/Fable.Import.Node/lib/netstandard1.6/Fable.Import.Node.dll"
 #r "./../packages/Fable.Import.Browser/lib/netstandard1.6/Fable.Import.Browser.dll"
-#load "./../../src/Fable.Import.Electron.fs"
+#r "./../packages/Fable.Import.Electron/lib/netstandard1.6/Fable.Import.Electron.dll"
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -25,7 +25,7 @@ let createMainWindow () =
     opts.protocol <- Some "file:"
     window.loadURL(Url.format(opts))
 
-    
+
     #if DEBUG
     Fs.watch(Path.join(Node.Globals.__dirname, "..", "app", "bundle.js"), fun _ _ ->
         window.webContents.reloadIgnoringCache()

@@ -9,7 +9,7 @@ The application will show 2 square on the screen and refresh the application eve
 ## How to build ?
 
 1. Run `yarn install`
-2. Run `.paket/paket.exe restore`
+2. Run `.paket\paket.exe restore`
 3. Move into the client folder: `cd client`
 4. Run `dotnet restore`
 5. Run `dotnet fable yarn-start`

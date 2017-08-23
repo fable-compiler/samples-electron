@@ -1,73 +1,39 @@
-# fable-electron
+# Fable samples for Github Electron apps
 
-Fable bindings and samples for Github Electron
+This repository contains samples to show how to create a [Github Electron](https://electron.atom.io/) cross-platform desktop app using F# and [Fable](http://fable.io).
 
-## What's electron?
+> At the time of writing there's only one simple sample. More to come!
 
-> The Electron framework lets you write cross-platform desktop applications using JavaScript, HTML and CSS. It is based on Node.js and Chromium and is used by the Atom editor and many other apps.
-> https://github.com/electron/electron
+## Requirements
 
-## How to run the samples?
+* [dotnet SDK](https://www.microsoft.com/net/download/core) 2.0 or higher
+* [node.js](https://nodejs.org) 6.11 or higher
+* A JS package manager: [yarn](https://yarnpkg.com) or [npm](http://npmjs.com/)
 
-### 1. Install electron
+> npm comes bundled with node.js, but we recommend to use at least npm 5. If you have npm installed, you can upgrade it by running `npm install -g npm`.
 
-To run the samples, `electron` needs to be available globally and in `PATH`.
+Although is not a Fable requirement, on macOS and Linux you'll need [Mono](http://www.mono-project.com/) for other F# tooling like Paket or editor support.
 
-```
-npm install -g electron
-```
+## Editor
 
-or
+The project can be used by editors compatible with the new .fsproj format, like VS Code + [Ionide](http://ionide.io/), Emacs with [fsharp-mode](https://github.com/fsharp/emacs-fsharp-mode) or [Rider](https://www.jetbrains.com/rider/). **Visual Studio for Mac** is also compatible but in the current version the package auto-restore function conflicts with Paket so you need to disable it: `Preferences > Nuget > General`.
 
-```
-sudo npm install -g electron
-```
- 
-### 2. Compile JS from .FSX
+## Building and running the app
 
-Every samples have a `fableconfig.json` file which contains configurations for fable. The only command needed is `fable`:
+> In the commands below, yarn is the tool of choice. If you want to use npm, just replace `yarn` by `npm` in the commands.
 
-```
-bash-3.2$ cd samples/material-ui/                                                                                                                                                                                                                                   
-bash-3.2$ fable 
-```
+* Install JS dependencies: `yarn install`
+* Install F# dependencies: `dotnet restore`
+* Start Fable daemon and [Webpack](https://webpack.js.org/): `yarn start`
+* In another terminal, run: `yarn run launch`
 
-The `npm` packages should install and fable will compile the `fsx`.
+> The first two steps are only necessary the first time or whenever the dependencies change.
 
-```
-bash-3.2$ fable                                                                                                                                                                                                                                                     
-npm install                                                                                                                                                                                                                                                         
-fable-compiler 0.5.6: Start compilation...                                                                                                                                                                                                                          
-Compiled renderer.fsx at 5:49:52 PM                                                                                                                                                                                                                                 
-Compiled main.fsx at 5:49:52 PM                                                                                                                                                                                                                                     
-node node_modules/webpack/bin/webpack                                                                                                                                                                                                                               
-Hash: 7cbedbac26f715a9ccf7                                                                                                                                                                                                                                          
-Version: webpack 1.13.2                                                                                                                                                                                                                                             
-Time: 1766ms                                                                                                                                                                                                                                                        
-          Asset     Size  Chunks             Chunk Names                                                                                                                                                                                                            
-        main.js  2.83 kB       0  [emitted]  main                                                                                                                                                                                                                   
-    renderer.js  1.29 MB       1  [emitted]  renderer                                                                                                                                                                                                               
-    main.js.map  3.24 kB       0  [emitted]  main                                                                                                                                                                                                                   
-renderer.js.map  1.54 MB       1  [emitted]  renderer                                                                                                                                                                                                               
-    + 371 hidden modules    
-```
+The app window will be refreshed when you modify any file in the Renderer project. For production, run `yarn run build` to get optimized JS code.
 
-### 3. Run electron sample
+## Architecture
 
-When the compilation is done, there should be a `app/js/main.js` file.
-It is the entrypoint for electron.
+As all Electron apps, the sample is split in two parts:
 
-To run the sample execute the following command:
-
-```
-bash-3.2$ npm run start                                                                                                                                                                                                                                             
-                                                                                                                                                                                                                                                                    
-> @ start /Users/[USERNAME]/Projects/fable-electron/samples/material-ui                                                                                                                                                                                            
-> electron app/js/main.js 
-```
-
-or 
-
-```
-bash-3.2$ electron app/js/main.js
-```
+1. The [main process](https://electron.atom.io/docs/glossary/#main-process), responsible to create the app windows.
+2. The [renderer process](https://electron.atom.io/docs/glossary/#renderer-process), responsible to generate the code used by `index.html`.

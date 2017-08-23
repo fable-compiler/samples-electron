@@ -1,4 +1,4 @@
-module FableTemplate
+module Renderer
 
 open Fable.Core
 open Fable.Core.JsInterop

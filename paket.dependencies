@@ -1,14 +1,9 @@
+framework: netcoreapp2.0
+
 source https://nuget.org/api/v2
 
-nuget FSharp.Core
-
-# Keep this version synced with dotnet-fable in .fsproj
-nuget Fable.Core 1.1.6
-nuget Fable.Import.Node 0.1.0
-nuget Fable.Import.Browser 0.1.0
-nuget Fable.React 1.1.0
-nuget Fable.Import.Chokidar 0.1.1
-nuget Fable.ReactToolbox 1.1.0-beta-4
-nuget Fable.Elmish 0.9.1
-nuget Fable.Elmish.React 0.9.0
-# Add here other Fable libraries like Fable.PowerPack
+clitool dotnet-fable prerelease
+nuget Fable.Core prerelease
+nuget Fable.Import.Browser
+nuget Fable.Import.Node
+nuget Fable.Import.Electron

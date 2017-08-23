@@ -1,0 +1,5 @@
+dotnet-fable
+Fable.Core
+Fable.Import.Browser
+Fable.Import.Node
+Fable.Import.Electron

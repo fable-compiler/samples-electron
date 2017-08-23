@@ -1,7 +1,4 @@
-#r "./../packages/Fable.Core/lib/netstandard1.6/Fable.Core.dll"
-#r "./../packages/Fable.Import.Node/lib/netstandard1.6/Fable.Import.Node.dll"
-#r "./../packages/Fable.Import.Browser/lib/netstandard1.6/Fable.Import.Browser.dll"
-#r "./../packages/Fable.Import.Electron/lib/netstandard1.6/Fable.Import.Electron.dll"
+module Main
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -21,13 +18,13 @@ let createMainWindow () =
 
     // Load the index.html of the app.
     let opts = createEmpty<Node.Url.Url<obj>>
-    opts.pathname <- Some <| Path.join(Node.Globals.__dirname, "..", "app", "index.html")
+    opts.pathname <- Some <| Path.join(Node.Globals.__dirname, "index.html")
     opts.protocol <- Some "file:"
     window.loadURL(Url.format(opts))
 
 
     #if DEBUG
-    Fs.watch(Path.join(Node.Globals.__dirname, "..", "app", "bundle.js"), fun _ _ ->
+    Fs.watch(Path.join(Node.Globals.__dirname, "renderer.js"), fun _ _ ->
         window.webContents.reloadIgnoringCache()
     ) |> ignore
     #endif
@@ -44,7 +41,7 @@ let createMainWindow () =
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
-electron.app.on("ready", unbox createMainWindow)
+electron.app.on("ready", unbox createMainWindow) |> ignore
 
 // Quit when all windows are closed.
 electron.app.on("window-all-closed", unbox(fun () ->
@@ -52,11 +49,11 @@ electron.app.on("window-all-closed", unbox(fun () ->
     // to stay active until the user quits explicitly with Cmd + Q
     if Node.Globals.``process``.platform <> Node.Base.NodeJS.Darwin then
         electron.app.quit()
-))
+)) |> ignore
 
 electron.app.on("activate", unbox(fun () ->
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if mainWindow.IsNone then
         createMainWindow()
-))
+)) |> ignore

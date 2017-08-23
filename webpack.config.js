@@ -13,15 +13,14 @@ var babelOptions = {
 var isProduction = process.argv.indexOf("-p") >= 0;
 console.log("Bundling for " + (isProduction ? "production" : "development") + "...");
 
-module.exports = {
+var basicConfig = {
   devtool: "source-map",
-  entry: resolve('./client/Client.fsproj'),
-  output: {
-    filename: 'bundle.js',
-    path: resolve('./app'),
-  },
   resolve: {
     modules: [resolve("./node_modules/")]
+  },
+  node: {
+    __dirname: false,
+    __filename: false
   },
   module: {
     rules: [
@@ -46,3 +45,23 @@ module.exports = {
     ]
   }
 };
+
+var mainConfig = Object.assign({
+  target: "electron-main",
+  entry: resolve("src/Main/Main.fsproj"),
+  output: {
+    path: resolve("app"),
+    filename: "main.js"
+  }
+}, basicConfig);
+
+var rendererConfig = Object.assign({
+  target: "electron-renderer",
+  entry: resolve("src/Renderer/Renderer.fsproj"),
+  output: {
+    path: resolve("app"),
+    filename: "renderer.js"
+  }
+}, basicConfig);
+
+module.exports = [mainConfig, rendererConfig]

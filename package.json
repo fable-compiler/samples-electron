@@ -16,6 +16,7 @@
     "babel-preset-es2015": "6.24.1",
     "electron": "^1.7.5",
     "fable-loader": "^1.0.7",
+    "fable-utils": "^1.0.2",
     "loglevel": "^1.4.1",
     "webpack": "^3.5.5"
   }

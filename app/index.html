@@ -1,15 +1,127 @@
 <!doctype html>
 <html>
+
 <head>
-  <title>Simple Fable App</title>
-  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="shortcut icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
-  <link rel="shortcut icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
+    <title>Simple Fable App</title>
+    <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
+    <link rel="shortcut icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.5.1/css/bulma.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        table .name {
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
 </head>
+
+
 <body>
-  <h1>Using HTML5 Canvas</h1>
-  <canvas align="center" id="canvas" width="1000" height="800"></canvas>
-  <script src="renderer.js"></script>
+    <nav class="navbar">
+        <div class="navbar-start">
+            <div class="navbar-item has-dropdown is-hoverable">
+                <a class="navbar-link" href="#">
+                    File
+                </a>
+                <div class="navbar-dropdown">
+                    <a class="navbar-item" id="act-open-folder" href="#">
+                        Open folder
+                    </a>
+                    <a class="navbar-item" id="act-quit" href="#">
+                        Quit
+                    </a>
+                </div>
+            </div>
+            <a class="navbar-item" id="act-about" href="#">
+                About
+            </a>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="breadcrumbs">
+        <ul id="address-bar">
+            <li><a href="#">Bulma</a></li>
+            <li><a href="#">Documentation</a></li>
+            <li><a href="#">Components</a></li>
+            <li class="is-active"><a href="#" aria-current="page">Breadcrumb</a></li>
+        </ul>
+    </nav>
+
+    <div class="columns">
+
+        <div class="column">
+            <nav class="panel">
+                <p class="panel-heading">
+                    Quick access
+                </p>
+                <a class="panel-block" data-quick-access="desktop">
+                    <span class="panel-icon">
+                        <i class="fa fa-desktop"></i>
+                    </span>
+                    Desktop
+                </a>
+                <a class="panel-block" data-quick-access="home">
+                    <span class="panel-icon">
+                        <i class="fa fa-home"></i>
+                    </span>
+                    Home
+                </a>
+                <a class="panel-block" data-quick-access="documents">
+                    <span class="panel-icon">
+                        <i class="fa fa-book"></i>
+                    </span>
+                    Documents
+                </a>
+                <a class="panel-block" data-quick-access="pictures">
+                    <span class="panel-icon">
+                        <i class="fa fa-picture-o"></i>
+                    </span>
+                    Pictures
+                </a>
+                <a class="panel-block" data-quick-access="videos">
+                    <span class="panel-icon">
+                        <i class="fa fa-video-camera"></i>
+                    </span>
+                    Videos
+                </a>
+                <a class="panel-block" data-quick-access="music">
+                    <span class="panel-icon">
+                        <i class="fa fa-music"></i>
+                    </span>
+                    Musics
+                </a>
+                <a class="panel-block" data-quick-access="downloads">
+                    <span class="panel-icon">
+                        <i class="fa fa-download"></i>
+                    </span>
+                    Downloads
+                </a>
+            </nav>
+        </div>
+
+        <div class="column is-three-quarters">
+            <table class="table is-narrow is-striped is-fullwidth">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Size</th>
+                    </tr>
+                </thead>
+                <tbody id="files-list">
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script src="renderer.js"></script>
 </body>
+
 </html>

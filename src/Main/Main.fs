@@ -37,6 +37,9 @@ let createMainWindow () =
         mainWindow <- Option.None
     )) |> ignore
 
+    // Maximize the window
+    window.maximize()
+
     mainWindow <- Some window
 
 // This method will be called when Electron has finished

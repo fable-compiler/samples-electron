@@ -6,4 +6,4 @@ nuget Fable.Core prerelease
 nuget Fable.Import.Browser
 nuget Fable.Import.Node
 nuget Fable.Import.Electron
-nuget Fable.React prerelease
+nuget Fable.Powerpack prerelease

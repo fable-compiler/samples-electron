@@ -2,11 +2,16 @@ module Renderer
 
 open Fable.Core
 open Fable.Core.JsInterop
-open Fable.Import.Electron
 open Fable.Import
+open Electron
 open Node.Exports
 open Fable.PowerPack
 
+let filesize = import<obj> "*" "file-size"
+// This is a dynamic programming instruction because we don't have a binding for file-size lib
+let sizeToHuman (size: float) : string = (filesize $ (size))?human $ ("si") |> unbox<string>
+
+// Reference the element of the View used by the application
 module Ref =
 
     let openFolder = Browser.document.getElementById("act-open-folder")
@@ -15,35 +20,74 @@ module Ref =
     let addressBar = Browser.document.getElementById("address-bar")
     let filesList = Browser.document.getElementById("files-list")
 
+// Used to storage a reference of the about window
+// Otherwise, the window is destroy by the Garbage Collector
 let mutable aboutWindow : BrowserWindow option = Option.None
 
+// Reference to the electron process
+// This allow us to create new window later for example
 let remote = importMember<Remote> "electron"
-let mutable currentDir = Node.Globals.``process``.cwd()
 
-let createBreadcrumbSegment segment =
+// Data pass on a navigation event
+type Navigate =
+    { Path : string }
+
+// Create a navigation event which handle path update
+let navigation = Event<Navigate>()
+
+
+///**Description**
+///
+///**Parameters**
+///  * `path` - parameter of type `string` - Absolute path of the directory
+///  * `segment` - parameter of type `string` - Name to display
+///
+///**Output Type**
+///  * `Browser.HTMLLIElement`
+///
+let createBreadcrumbSegment path segment =
     let root = Browser.document.createElement_li()
     let link = Browser.document.createElement_a()
     link.href <- "#"
     link.innerText <- segment
+
+    link.addEventListener_click(fun _ ->
+        navigation.Trigger({ Path = path })
+        null
+    )
+
     root.appendChild(link) |> ignore
     root
 
+///**Description**
+///
+///**Parameters**
+///  * `path` - parameter of type `string` - Absolute path to represent
+///
+///**Output Type**
+///  * `Browser.HTMLLIElement []`
+///
 let generateBreadcrumb (path : string) =
-    path.Split(char Path.sep)
-    |> Array.map(fun segment ->
-        createBreadcrumbSegment segment
+    let segments = path.Split(char Path.sep)
+
+    segments
+    |> Array.mapi(fun index segment ->
+        let subPath = segments.[0..index] |> String.concat Path.sep
+        createBreadcrumbSegment subPath segment
     )
 
-let replaceChildren (root: Browser.HTMLElement) children =
-    while not (isNull root.firstChild) do
-        root.removeChild(root.firstChild)
-        |> ignore
 
-    for child in children do
-        root.appendChild(child)
-        |> ignore
-
-let generateFileRow file (fileStats : Node.Fs.Stats) =
+///**Description**
+///
+///**Parameters**
+///  * `path` - parameter of type `string` - Absolute path to the file
+///  * `filename` - parameter of type `string` - Name of the file to display
+///  * `fileStats` - parameter of type `Node.Fs.Stats` - Stats over the file
+///
+///**Output Type**
+///  * `Browser.HTMLTableRowElement`
+///
+let generateFileRow path filename (fileStats : Node.Fs.Stats) =
     let root = Browser.document.createElement_tr()
     let icon = Browser.document.createElement_td()
     let name = Browser.document.createElement_td()
@@ -51,39 +95,64 @@ let generateFileRow file (fileStats : Node.Fs.Stats) =
     let ``type`` = Browser.document.createElement_td()
     let size = Browser.document.createElement_td()
 
-    name.className <- "name"
-    name.innerText <- file
+    let isDirectory = fileStats.isDirectory()
 
-    date.innerText <- Date.Format.format fileStats.birthtime "dd-MM-yyyy hh:mm:ss"
+    icon.appendChild(Html.createIcon (Mime.determineIcon filename isDirectory)) |> ignore
 
-    replaceChildren root [ icon; name; date; ``type``; size]
-    root
-
-let updatePath path =
-    currentDir <- path
-
-    let segments = generateBreadcrumb currentDir
-
-    // Clean and Fill addres bar
-    replaceChildren Ref.addressBar segments
-
-    Fs.readdir(!^currentDir, fun error files ->
-        if error.IsSome then
-            Browser.console.error error.Value
-
-        unbox<List<string>> files
-        |> List.map(fun file ->
-            (file, Fs.statSync(!^Path.join(currentDir,file)))
-        )
-        |> List.map(fun (file, fileStats) ->
-            generateFileRow file fileStats
-        )
-        // Clean and Fill files list
-        |> replaceChildren Ref.filesList
-
+    name.appendChild(Html.createLink filename) |> ignore
+    name.addEventListener_click(fun _ ->
+        navigation.Trigger({ Path = path })
+        null
     )
 
+    date.innerText <- fileStats.birthtime.ToString("dd-MM-yyyy hh:mm:ss")
+
+    ``type``.innerText <- Mime.determineFileType filename isDirectory
+
+    if not isDirectory then
+        size.innerText <- sizeToHuman fileStats.size
+
+    Html.replaceChildren root [ icon; name; date; ``type``; size]
+    root
+
 let init () =
+    // Register a listener over the navigation event
+    navigation.Publish.Add(fun ev ->
+        let path = ev.Path
+
+        // If the path is a direcotry then update the display
+        if (Fs.statSync(!^Path.join(path))).isDirectory() then
+            let segments = generateBreadcrumb path
+
+            // Clean and Fill addres bar
+            Html.replaceChildren Ref.addressBar segments
+
+            Fs.readdir(!^path, fun error files ->
+                if error.IsSome then
+                    Browser.console.error error.Value
+
+                unbox<List<string>> files
+                // Remove all the files starting with '.'
+                |> List.filter(fun file ->
+                    not (file.StartsWith("."))
+                )
+                // Get stats of the files
+                |> List.map(fun file ->
+                    (file, Fs.statSync(!^Path.join(path,file)))
+                )
+                // Render the file list
+                |> List.map(fun (file, fileStats) ->
+                    generateFileRow (Path.join(path,file)) file fileStats
+                )
+                // Clean and Fill files list
+                |> Html.replaceChildren Ref.filesList
+            )
+        else
+            // Open the file using default application
+            ChildProcess.exec(path) |> ignore
+    )
+
+    // Register click on the About menu
     Ref.about.addEventListener_click(fun _ ->
         if aboutWindow.IsSome then
             aboutWindow.Value.show()
@@ -109,24 +178,40 @@ let init () =
             aboutWindow <- about |> Some
 
         null
-
-        // var params = {toolbar: false, resizable: false, show: true, height: 150, width: 400};
-        // aboutWindow = new BrowserWindow(params);
-        // aboutWindow.loadURL('file://' + __dirname + '/about.html');
     )
 
+    // Register click of the quickAccess menu
+    // We use the data attribute to find them
     for quickAccess in unbox<List<Browser.HTMLElement>> (Browser.document.querySelectorAll("[data-quick-access]")) do
         quickAccess.addEventListener_click(fun ev ->
             let element = ev.target :?> Browser.HTMLElement
             let quickAccessInfo = element.dataset.Item("quickAccess")
-            updatePath (remote.app.getPath(!!quickAccessInfo))
+            navigation.Trigger({ Path = remote.app.getPath(!!quickAccessInfo) })
             null
             //updatePath remote.app.getPath()
         )
 
+    // Register click on the OpenFolder menu
     Ref.openFolder.addEventListener_click(fun _ ->
-        updatePath currentDir
+        let options = createEmpty<OpenDialogOptions>
+        options.properties <- ResizeArray(["openDirectory"]) |> Some
+
+        let result = remote.dialog.showOpenDialog(options)
+
+        // Make sure something have been selected
+        if not (isNull result) && result.Count > 0 then
+            navigation.Trigger({ Path = result.[0] })
+
         null
     )
+
+    // Register click on the Quit menu
+    Ref.quit.addEventListener_click(fun _ ->
+        let win = remote.getCurrentWindow()
+        win.close()
+        null
+    )
+
+    navigation.Trigger({ Path = Node.Globals.``process``.cwd() })
 
 init()

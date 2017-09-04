@@ -14,6 +14,7 @@ let createMainWindow () =
     let options = createEmpty<BrowserWindowOptions>
     options.width <- Some 800.
     options.height <- Some 600.
+    options.autoHideMenuBar <- Some true
     let window = electron.BrowserWindow.Create(options)
 
     // Load the index.html of the app.

@@ -10,7 +10,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.5.1/css/bulma.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
-        table .name {
+        /* Icon columns */
+
+        #explorer tr th:nth-child(1) {
+            width: 28px;
+        }
+        /* Date columns */
+
+        #explorer tr th:nth-child(3) {
+            width: 190px;
+        }
+        /* Name cells */
+
+        #explorer tr td:nth-child(2) {
             max-width: 150px;
             white-space: nowrap;
             overflow: hidden;
@@ -43,12 +55,7 @@
     </nav>
 
     <nav class="breadcrumb" aria-label="breadcrumbs">
-        <ul id="address-bar">
-            <li><a href="#">Bulma</a></li>
-            <li><a href="#">Documentation</a></li>
-            <li><a href="#">Components</a></li>
-            <li class="is-active"><a href="#" aria-current="page">Breadcrumb</a></li>
-        </ul>
+        <ul id="address-bar"></ul>
     </nav>
 
     <div class="columns">
@@ -104,7 +111,7 @@
         </div>
 
         <div class="column is-three-quarters">
-            <table class="table is-narrow is-striped is-fullwidth">
+            <table class="table is-narrow is-striped is-fullwidth" id="explorer">
                 <thead>
                     <tr>
                         <th></th>

@@ -37,3 +37,9 @@ As all Electron apps, the sample is split in two parts:
 
 1. The [main process](https://electron.atom.io/docs/glossary/#main-process), responsible to create the app windows.
 2. The [renderer process](https://electron.atom.io/docs/glossary/#renderer-process), responsible to generate the code used by `index.html`.
+
+## Samples
+
+### File explorer
+
+![Demo file explorer](gif/file_explorer.gif)

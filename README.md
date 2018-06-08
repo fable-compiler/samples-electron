@@ -31,6 +31,18 @@ The project can be used by editors compatible with the new .fsproj format, like 
 
 The app window will be refreshed when you modify any file in the Renderer project. For production, run `yarn run build` to get optimized JS code.
 
+## Releasing the app
+
+> In the commands below, yarn is the tool of choice. If you want to use npm, just replace `yarn` by `npm` in the commands.
+
+* Run `yarn run build`
+* Run `yarn run release`
+* A `release` folder should be created with a ready to execute application
+
+This will package the electron app for your current platform. This means if you are under `Mac` this will create a `Simple Fable App.app` application that can be executed.
+
+If you want to specify which platform to release, please take a look at [electron-packager](https://github.com/electron-userland/electron-packager).
+
 ## Architecture
 
 As all Electron apps, the sample is split in two parts:

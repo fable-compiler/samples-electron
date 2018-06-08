@@ -258,3 +258,4 @@ samples/*/temp/*
 sample/app/bundle\.js*
 
 sample/out/
+release/

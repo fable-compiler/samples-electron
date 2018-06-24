@@ -41,7 +41,16 @@ The app window will be refreshed when you modify any file in the Renderer projec
 
 This will package the electron app for your current platform. This means if you are under `Mac` this will create a `Simple Fable App.app` application that can be executed.
 
-If you want to specify which platform to release, please take a look at [electron-packager](https://github.com/electron-userland/electron-packager).
+If you want to specify which platform to release, please take a look at [electron-packager](https://github.com/electron-userland/electron-packager). For example, to release to Linux you could do this:
+
+* Add a new `release-linux` script to the package.json file like this:  
+    &nbsp;&nbsp;&nbsp;&nbsp;`"release-linux": "electron-packager . --arch=x64 --platform=linux --out release --overwrite"`
+* Run `yarn run release-linux`
+* Or you could run electron-packager from the command line by first installing npx: `npm install -g npx`
+* Try to run npx from your repo folder by typing `npx -v`
+* If npx is not found, restart Windows to update the Path environment variable to include ..\AppData\Roaming\npm.
+* Run `npx electron-packager . --arch=x64 --platform=linux --out release --overwrite`
+* When you try to execute the `Simple Fable App` file on an Ubuntu instance, if it fails to run you might need to `sudo apt-get install libnss3`.
 
 ## Architecture
 
